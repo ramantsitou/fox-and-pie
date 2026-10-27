@@ -11,6 +11,11 @@ for(const [w,h] of [[830,300],[620,260],[440,350],[340,220]]){
  c.pointer={clientX:10+w*3.5/14,clientY:20+h*4.5/10};let cell=vm.runInContext('cell(pointer)',c);assert.equal(cell.x,3);assert.equal(cell.y,4);vm.runInContext('draw()',c);
 }
 vm.runInContext('manualLandscape=true',c);canvas.getBoundingClientRect=()=>({left:10,top:20,width:300,height:830});c.pointer={clientX:10+300*(1-4.5/10),clientY:20+830*3.5/14};let cell=vm.runInContext('cell(pointer)',c);assert.equal(cell.x,3);assert.equal(cell.y,4);
+// Changing workshop mode reveals its controls; balance changes do not disturb reading.
+vm.runInContext('phoneMode=true;selectedTrap=null;pendingPlacement=null;ui()',c);nodes['#workshop'].scrollTop=80;vm.runInContext('money+=2;ui()',c);assert.equal(nodes['#workshop'].scrollTop,80);vm.runInContext('pendingPlacement={x:2,y:2,type:0};ui()',c);assert.equal(nodes['#workshop'].scrollTop,0);vm.runInContext('pendingPlacement=null;ui()',c);
+// Compact controls retain full accessible labels, even with large balances and bosses.
+for(const lang of ['ru','en','nl']){vm.runInContext(`language='${lang}';phoneMode=true;money=1000;level=10;ui()`,c);assert.equal(nodes['#money'].textContent,'🪙 1000');assert.equal(nodes['#level'].textContent,'10/50 👑');assert.equal(nodes['#speed'].textContent,'×1');assert(nodes['#start']['aria-label'].length>0);assert(nodes['#money']['aria-label'].includes('1000'));vm.runInContext("say('upgraded')",c);assert.equal(nodes['#message'].dataset.kind,'upgraded');}
+vm.runInContext("language='ru';level=1;phoneMode=false;ui()",c);assert(nodes['#money'].textContent.includes('Монеты'));assert.equal(nodes['#start'].textContent,'Пустить лис!');
 vm.runInContext('phoneMode=false;fitBoard()',c);assert.equal(field.style.height,'');assert.equal(canvas.width,840);assert.equal(canvas.height,600);
 const store=new Map(),storage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)};
 const listeners={},first={},second={};let reloads=0,updates=0,registrationOptions;
