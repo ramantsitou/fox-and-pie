@@ -1,5 +1,7 @@
 # Foxes & Pie
 
+Created by my son **Jan** and his friend **Martin** through **vibe coding**, turning their ideas into a playable game with AI assistance.
+
 A browser game by Jan and Martin: place traps and protect the pie from foxes, wolves, bears, and hares. Features include Russian, English, and Dutch interfaces, alternating player turns, sound effects, trap upgrades, and a mobile layout.
 
 Live site: https://fox-pie-yanchik-martin.freshflame33.chatgpt.site
