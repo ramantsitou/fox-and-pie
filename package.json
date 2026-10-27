@@ -8,7 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node tests/game.test.cjs && node tests/fullscreen.test.cjs && node tests/sw.test.cjs && node tests/build.test.mjs",
+    "test": "node tests/game.test.cjs && node tests/fullscreen.test.cjs && node tests/responsive-update.test.cjs && node tests/sw.test.cjs && node tests/build.test.mjs",
     "build": "node scripts/build.mjs",
     "package:sites": "node scripts/package-sites.mjs"
   }

@@ -4,7 +4,8 @@ const CACHE = CACHE_PREFIX + '2026-10-27-v1';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
 const urls = FILES.map(path => new URL(path, self.registration.scope).href);
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(urls)));
+  // Activate only after every new offline asset has been cached successfully.
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(urls)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
