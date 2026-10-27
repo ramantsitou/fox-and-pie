@@ -1,0 +1,15 @@
+{
+  "name": "fox-and-pie",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline PWA tower defense game by Jan and Martin",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node tests/game.test.cjs && node tests/sw.test.cjs && node tests/build.test.mjs",
+    "build": "node scripts/build.mjs",
+    "package:sites": "node scripts/package-sites.mjs"
+  }
+}

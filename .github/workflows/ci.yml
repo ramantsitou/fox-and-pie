@@ -1,0 +1,57 @@
+name: Build and test
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Run game, offline-cache and build tests
+        run: npm test
+      - name: Build offline PWA
+        run: npm run build
+      - name: Package existing Sites deployment artifact
+        run: npm run package:sites
+      - name: Validate archive structure
+        run: tar -tzf artifacts/fox-and-pie-sites.tar.gz
+      - name: Upload verified deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fox-and-pie-sites-${{ github.sha }}
+          path: artifacts/fox-and-pie-sites.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+      - name: Explain publication status
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'SUMMARY'
+          ### PWA verified and packaged
+          Tests and build passed. The archive contains the current PWA and the existing Sites project identity.
+
+          **Automatic publication to ChatGPT Sites is not configured.**
+          The available Sites integration currently requires an authenticated ChatGPT/Codex session to save and deploy a version. This workflow deliberately does not use temporary session credentials or pretend that uploading an artifact publishes the site.
+          SUMMARY

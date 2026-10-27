@@ -1,0 +1,14 @@
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),assert=require('node:assert/strict');
+(async()=>{const handlers={},stores=new Map(),scope='https://example.test/games/fox-pie/';let online=true,body='fresh game',fetches=0;
+const key=r=>typeof r==='string'?r:r.url;
+const caches={async open(name){if(!stores.has(name))stores.set(name,new Map());const store=stores.get(name);return{async addAll(urls){for(let url of urls)store.set(url,new Response('precache '+url))},async put(request,response){store.set(key(request),response.clone())},async match(request,options={}){let url=key(request);if(options.ignoreSearch)url=url.split('?')[0];return store.get(url)?.clone()}}},async keys(){return [...stores.keys()]},async delete(n){return stores.delete(n)}};
+const c={URL,Response,console,caches,self:{registration:{scope},clients:{async claim(){}},addEventListener(name,handler){handlers[name]=handler}},async fetch(request){fetches++;if(!online)throw Error('offline');return new Response(body,{status:200})}};
+vm.createContext(c);vm.runInContext(fs.readFileSync(path.join(__dirname,'../sw.js'),'utf8'),c);
+async function lifecycle(name){let work;handlers[name]({waitUntil(p){work=p}});await work}
+await lifecycle('install');stores.set('fox-pie-pwa-old',new Map());stores.set('another-app',new Map());await lifecycle('activate');assert(!stores.has('fox-pie-pwa-old'));assert(stores.has('another-app'));
+async function request(url,{mode='navigate',method='GET'}={}){let response;handlers.fetch({request:{url,mode,method},respondWith(p){response=p}});return response&&await response}
+online=false;let response=await request(scope+'index.html');assert((await response.text()).includes('precache'));online=true;body='updated game';response=await request(scope+'index.html');assert.equal(await response.text(),'updated game');online=false;response=await request(scope+'index.html');assert.equal(await response.text(),'updated game');
+let before=fetches;response=await request(scope+'icons/icon-192.png?v=1',{mode:'cors'});assert(response.ok);assert.equal(fetches,before);
+assert.equal(await request('https://other.test/index.html'),undefined);assert.equal(await request('https://example.test/other-folder/index.html'),undefined);assert.equal(await request(scope+'index.html',{method:'POST'}),undefined);
+console.log('PASS: SW install and scoped cache cleanup; offline launch; fresh page caching; offline updated page; cached icons; unrelated requests ignored');
+})().catch(e=>{console.error(e);process.exitCode=1});
