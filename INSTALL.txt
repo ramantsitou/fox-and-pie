@@ -2,7 +2,7 @@ FOXES & PIE — PWA
 
 REGULAR STARTUP
 Open index.html in a browser. The game works without installation.
-Menu → Full screen. Browsers may block fullscreen mode for local files.
+On phones, tapping the ready/start button requests fullscreen automatically. Browsers may block fullscreen mode for local files. Install the PWA for fullscreen launch from its icon.
 
 INSTALL AS AN APP
 1. Host index.html, manifest.webmanifest, sw.js, and the icons directory together on a static HTTPS site. The files may be hosted in a subdirectory.

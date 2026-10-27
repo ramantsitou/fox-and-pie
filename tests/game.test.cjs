@@ -15,9 +15,16 @@ c.location={protocol:'https:'};c.isSecureContext=true;let registration;
 c.navigator.serviceWorker={async register(url,options){registration={url,options}},ready:Promise.resolve({})};
 await vm.runInContext('registerOffline()',c);assert.equal(registration.url,'./sw.js');assert.equal(registration.options.scope,'./');assert.equal(vm.runInContext('pwaStatusKey',c),'appOfflineReady');
 c.document.documentElement.requestFullscreen=async()=>{c.document.fullscreenElement=c.document.documentElement};c.document.exitFullscreen=async()=>{c.document.fullscreenElement=null};
-await nodes['#fullscreen'].onclick();assert(c.document.fullscreenElement);await nodes['#fullscreen'].onclick();assert(!c.document.fullscreenElement);
-delete c.document.documentElement.requestFullscreen;await nodes['#fullscreen'].onclick();assert.equal(vm.runInContext('pwaStatusKey',c),'fullscreenUnsupported');
+await vm.runInContext('enterImmersiveFullscreen()',c);assert(c.document.fullscreenElement);await c.document.exitFullscreen();assert(!c.document.fullscreenElement);
+delete c.document.documentElement.requestFullscreen;await assert.rejects(vm.runInContext('enterImmersiveFullscreen()',c));
 let prompted=0,prevented=0;events.beforeinstallprompt({preventDefault(){prevented++},async prompt(){prompted++},userChoice:Promise.resolve({outcome:'dismissed'})});await nodes['#installGame'].onclick();assert.equal(prompted,1);assert.equal(prevented,1);events.appinstalled();assert.equal(nodes['#installGame'].hidden,true);
 const manifest=JSON.parse(fs.readFileSync(path.join(__dirname,'../manifest.webmanifest'),'utf8'));assert.equal(manifest.display,'fullscreen');assert.equal(manifest.orientation,'landscape');assert.equal(manifest.scope,'./');for(let icon of manifest.icons)assert(fs.existsSync(path.join(__dirname,'..',icon.src)));
 console.log('PASS: turn passing on failures and success; persistent pie; 2 boss coins; retry rollback; boss weakening/floor/reset; upgrades/refunds; maze integrity; 3 languages; PWA registration, install and fullscreen handlers; manifest and icons');
 })().catch(e=>{console.error(e);process.exitCode=1});
+
+// Browser language preferences are matched by base language, with English fallback.
+for(const [preferences,expected] of [[['nl-NL'],'nl'],[['ru-RU'],'ru'],[['en-US'],'en'],[['de-DE','nl-BE'],'nl'],[['de-DE','fr-FR'],'en'],[[],'en']]){
+ const {context}=game({navigator:{languages:preferences},localStorage:{getItem(){return null},setItem(){}}});
+ assert.equal(vm.runInContext('language',context),expected);
+}
+{const {context}=game({navigator:{language:'nl-NL'},localStorage:{getItem(){return 'ru'},setItem(){}}});assert.equal(vm.runInContext('language',context),'ru');}

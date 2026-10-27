@@ -22,7 +22,7 @@ npm run package:sites
 - `manifest.webmanifest` and `icons/` — app installation settings and icons.
 - `tests/game.test.cjs` — game rules, turn changes, bosses, upgrades, translations, and PWA event handlers.
 - `tests/fullscreen.test.cjs` — Android fullscreen entry, hiding navigation controls, browser permission failures, and user-initiated exits.
-- `tests/responsive-update.test.cjs` — filling the available screen, touch accuracy, automatic PWA updates, and progress preservation.
+- `tests/responsive-update.test.cjs` — proportional screen fitting, touch accuracy, automatic PWA updates, and progress preservation.
 - `tests/sw.test.cjs` — service worker installation, caching, offline startup, and scope boundaries.
 - `tests/build.test.mjs` — build contents, cache version updates, and rejection of invalid source files.
 - `scripts/build.mjs` — validates the source and builds `dist/`. The cache version depends on the game's contents, so a changed build updates the PWA cache.
@@ -30,9 +30,13 @@ npm run package:sites
 
 For regular play, open the source HTML file directly. PWA features require HTTPS or localhost. After building, publish the contents of `dist/` while preserving the directory structure. See `INSTALL.txt` for installation details.
 
-## Board size and installed PWA updates
+## Language, fullscreen, and installed PWA updates
 
-On phones, the board fills the available area to the left of the shop. Horizontal and vertical scaling adjust independently, so cells may be rectangular. The canvas accounts for screen pixel density. Touch coordinates are calculated from its actual dimensions, including manual rotation.
+On first launch, the interface follows the browser’s preferred supported language (Russian, English, or Dutch), including regional variants. If none matches, it uses English. A language chosen in the menu is saved and takes priority on later visits.
+
+The installed PWA requests fullscreen landscape mode at launch. On phones in a regular browser, the first ready/start gesture requests immersive fullscreen; browser restrictions may prevent it. There is no fullscreen menu button.
+
+On phones, the board fits the largest possible 14:10 rectangle in the available area to the left of the shop, keeping cells square and artwork proportional. The canvas accounts for screen pixel density. Touch coordinates are calculated from its actual dimensions, including manual rotation.
 
 The app checks for a new service worker when it opens, when the player returns to it, and once a minute while it is running. A new version activates only after the complete offline cache has downloaded successfully. The page waits until the current wave ends before restarting. Before the restart, it saves the level, player, pie, traps, coins, and speed settings in sessionStorage. The new page restores them. If the browser blocks sessionStorage, the game does not restart automatically, to avoid losing progress.
 

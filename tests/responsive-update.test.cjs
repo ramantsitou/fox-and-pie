@@ -6,7 +6,7 @@ vm.runInContext('phoneMode=true',c);
 const holder=c.document.querySelector('.board-holder'),field=c.document.querySelector('.field'),canvas=c.document.querySelector('#game');
 for(const [w,h] of [[830,300],[620,260],[440,350],[340,220]]){
  holder.clientWidth=w;holder.clientHeight=h;vm.runInContext('fitBoard()',c);
- assert.equal(field.style.width,w+'px');assert.equal(field.style.height,h+'px');assert.equal(canvas.width,w*2);assert.equal(canvas.height,h*2);
+ const scale=Math.min(w/840,h/600),fw=840*scale,fh=600*scale;assert.equal(field.style.width,fw+'px');assert.equal(field.style.height,fh+'px');assert.equal(canvas.width,Math.round(fw*2));assert.equal(canvas.height,Math.round(fh*2));assert(Math.abs(fw/fh-1.4)<1e-10);assert(fw<=w+1e-8&&fh<=h+1e-8);
  canvas.getBoundingClientRect=()=>({left:10,top:20,width:w,height:h});
  c.pointer={clientX:10+w*3.5/14,clientY:20+h*4.5/10};let cell=vm.runInContext('cell(pointer)',c);assert.equal(cell.x,3);assert.equal(cell.y,4);vm.runInContext('draw()',c);
 }
@@ -26,5 +26,5 @@ assert.equal(state.level,13);assert.equal(state.playerIndex,1);assert.equal(stat
 vm.runInContext('checkAppUpdate()',c);assert.equal(updates,1);
 // Storage-denied browsers keep the current game rather than losing progress.
 vm.runInContext('updateReloading=false',c);c.sessionStorage={setItem(){throw Error('storage blocked')}};vm.runInContext('applyPendingUpdate()',c);assert.equal(reloads,1);assert.equal(vm.runInContext('pwaStatusKey',c),'appUpdateManual');
-console.log('PASS: field fills four viewport sizes; high-DPI canvas; accurate regular and rotated touches; desktop sizing; update checks; no first-install reload loop; update after wave; progress restored; blocked-storage fallback');
+console.log('PASS: field fits four viewport sizes proportionally; high-DPI canvas; accurate regular and rotated touches; desktop sizing; update checks; no first-install reload loop; update after wave; progress restored; blocked-storage fallback');
 })().catch(e=>{console.error(e);process.exitCode=1});
