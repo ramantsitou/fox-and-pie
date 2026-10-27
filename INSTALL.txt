@@ -27,3 +27,7 @@ AUTOMATIC UPDATES
 After a new version is published to the site, the installed PWA does not need to be reinstalled. It checks for updates when it next opens or the player returns to the game. While the app is open, it also checks once a minute.
 The new version downloads completely, then the app restarts after the current wave ends. The level, player, coins, traps, and remaining pie are preserved. If the browser does not allow session state to be stored, the app displays a message that an update is ready instead of restarting.
 After this update mechanism is first introduced, reopen the old version once while connected to the internet. A closed app is not guaranteed to update immediately in the background.
+
+SAVED GAMES AND PAUSE
+The setup and results save automatically on this device between waves. Reopen the game and choose Continue game. Closing or reloading during a wave restores the setup from its beginning; that wave starts again.
+During combat, the start button becomes pause/resume. Opening the menu pauses the battle. After switching away from the game, press Resume to continue. Starting a new game asks for confirmation.

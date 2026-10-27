@@ -1,6 +1,6 @@
 # Foxes & Pie
 
-Created by my son **Jan** and his friend **Martin** through **vibe coding**, turning their ideas into a playable game with AI assistance.
+Created by my son **Jan** and his friend **Martin** through **vibe coding**, turning their ideas into a playable game with AI assistance. Both were **7 years old** when they came up with the game.
 
 A browser game by Jan and Martin: place traps and protect the pie from foxes, wolves, bears, and hares. Features include Russian, English, and Dutch interfaces, alternating player turns, sound effects, trap upgrades, and a mobile layout.
 
@@ -23,6 +23,7 @@ npm run package:sites
 - `tests/game.test.cjs` — game rules, turn changes, bosses, upgrades, translations, and PWA event handlers.
 - `tests/fullscreen.test.cjs` — Android fullscreen entry, hiding navigation controls, browser permission failures, and user-initiated exits.
 - `tests/responsive-update.test.cjs` — proportional screen fitting, touch accuracy, automatic PWA updates, and progress preservation.
+- `tests/ux.test.cjs` — saved-game recovery, wave checkpoints, pause, safe restart, placement guidance, upgrade previews, and turn results.
 - `tests/sw.test.cjs` — service worker installation, caching, offline startup, and scope boundaries.
 - `tests/build.test.mjs` — build contents, cache version updates, and rejection of invalid source files.
 - `scripts/build.mjs` — validates the source and builds `dist/`. The cache version depends on the game's contents, so a changed build updates the PWA cache.
@@ -41,6 +42,14 @@ On phones, the board fits the largest possible 14:10 rectangle in the available 
 The app checks for a new service worker when it opens, when the player returns to it, and once a minute while it is running. A new version activates only after the complete offline cache has downloaded successfully. The page waits until the current wave ends before restarting. Before the restart, it saves the level, player, pie, traps, coins, and speed settings in sessionStorage. The new page restores them. If the browser blocks sessionStorage, the game does not restart automatically, to avoid losing progress.
 
 This behavior starts working after the player first opens a version that includes it. A closed PWA is not guaranteed to update immediately: it checks when it next opens or the player returns to it. Internet access is needed to download a new version, not for regular offline play.
+
+## Saved games and gameplay controls
+
+The game saves the setup and results locally between waves. Reopening the page shows **Continue game** with the saved level, player, and pie. A reload or app closure during combat restores the setup from the start of that wave; the wave is replayed, rather than restoring animals in motion. Upgrades or purchases made during an unfinished wave are rolled back to that checkpoint. Saved games stay on the same device and browser origin.
+
+The start control becomes a pause/resume control during combat. Opening settings or the new-game confirmation pauses the battle. After a background/blur event, the game waits for an explicit resume. Starting over requires confirmation; canceling preserves the current game. If local saving is blocked, play continues with a visible save warning.
+
+Valid trap squares are highlighted after selecting a trap. Unaffordable cards remain selectable for guidance, but show the missing coins. Upgrade buttons preview the next damage (or net duration) and maximum durability. A player badge remains visible on the board. The wave preview lists animal counts, introduces new animal abilities, and becomes an entered/alive counter during combat. Handoff dialogs retain the previous result, including lost pie, refunds, and coin/trap rollback on a failed attempt.
 
 ## GitHub Actions and deployment
 
