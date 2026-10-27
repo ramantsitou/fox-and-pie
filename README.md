@@ -1,12 +1,12 @@
 # Foxes & Pie
 
-Браузерная игра Янчика и Мартина: расставляйте ловушки и защищайте пирог от лис, волков, медведей и зайцев. Есть русский, английский и нидерландский интерфейс, игра по очереди, звук, улучшения ловушек и мобильный режим.
+A browser game by Jan and Martin: place traps and protect the pie from foxes, wolves, bears, and hares. Features include Russian, English, and Dutch interfaces, alternating player turns, sound effects, trap upgrades, and a mobile layout.
 
-Действующий сайт: https://fox-pie-yanchik-martin.freshflame33.chatgpt.site
+Live site: https://fox-pie-yanchik-martin.freshflame33.chatgpt.site
 
-## Разработка
+## Development
 
-Нужен Node.js 22 или новее. Сторонних зависимостей нет.
+Requires Node.js 22 or newer. There are no third-party dependencies.
 
 ```sh
 npm ci --ignore-scripts
@@ -15,43 +15,43 @@ npm run build
 npm run package:sites
 ```
 
-- `index.html` — исходный интерфейс, стили, переводы и игровая логика.
-- `sw.js` — офлайн-кэш PWA.
-- `manifest.webmanifest` и `icons/` — установка и иконки приложения.
-- `tests/game.test.cjs` — правила игры, передачи хода, боссы, улучшения, переводы и обработчики PWA.
-- `tests/fullscreen.test.cjs` — вход в полный экран Android, скрытие панелей, отказ браузера и выход пользователя.
-- `tests/responsive-update.test.cjs` — заполнение экрана, точность касаний, автообновление PWA и сохранение прогресса.
-- `tests/sw.test.cjs` — установка service worker, кэш, офлайн-запуск и границы его области действия.
-- `tests/build.test.mjs` — состав сборки, обновление версии кэша и отклонение повреждённых исходников.
-- `scripts/build.mjs` — проверяет исходники и собирает `dist/`. Версия кэша зависит от содержимого игры: новая сборка обновляет PWA-кэш.
-- `.openai/hosting.json` — идентификатор уже существующего сайта Sites и папка `dist`; это не секрет и не ключ публикации.
+- `index.html` — the application interface, styles, translations, and game logic.
+- `sw.js` — the PWA's offline cache.
+- `manifest.webmanifest` and `icons/` — app installation settings and icons.
+- `tests/game.test.cjs` — game rules, turn changes, bosses, upgrades, translations, and PWA event handlers.
+- `tests/fullscreen.test.cjs` — Android fullscreen entry, hiding navigation controls, browser permission failures, and user-initiated exits.
+- `tests/responsive-update.test.cjs` — filling the available screen, touch accuracy, automatic PWA updates, and progress preservation.
+- `tests/sw.test.cjs` — service worker installation, caching, offline startup, and scope boundaries.
+- `tests/build.test.mjs` — build contents, cache version updates, and rejection of invalid source files.
+- `scripts/build.mjs` — validates the source and builds `dist/`. The cache version depends on the game's contents, so a changed build updates the PWA cache.
+- `.openai/hosting.json` — the existing Sites project ID and the `dist` output directory. This is neither a secret nor a deployment credential.
 
-Для обычной игры можно открыть исходный HTML-файл напрямую. Для PWA нужен HTTPS или localhost. После сборки опубликуйте содержимое `dist/` с сохранением путей. Подробности установки — в `INSTALL.txt`.
+For regular play, open the source HTML file directly. PWA features require HTTPS or localhost. After building, publish the contents of `dist/` while preserving the directory structure. See `INSTALL.txt` for installation details.
 
-## Размер поля и обновление установленной PWA
+## Board size and installed PWA updates
 
-На телефоне поле заполняет всю свободную область слева от магазина. Масштаб по ширине и высоте подстраивается отдельно, поэтому клетки могут быть прямоугольными. Размер canvas учитывает плотность экрана; координаты касаний рассчитываются по его фактическому размеру, включая ручной поворот.
+On phones, the board fills the available area to the left of the shop. Horizontal and vertical scaling adjust independently, so cells may be rectangular. The canvas accounts for screen pixel density. Touch coordinates are calculated from its actual dimensions, including manual rotation.
 
-При открытии, возвращении в приложение и раз в минуту во время его работы проверяется новая версия service worker. Новая версия активируется только после успешного скачивания полного офлайн-кэша. Перезапуск страницы откладывается до окончания текущей волны. Перед ним в sessionStorage сохраняются уровень, игрок, пирог, ловушки, монеты и настройки скорости. Новая страница восстанавливает их. Если браузер запрещает sessionStorage, игра не перезапускается автоматически, чтобы не терять прогресс.
+The app checks for a new service worker when it opens, when the player returns to it, and once a minute while it is running. A new version activates only after the complete offline cache has downloaded successfully. The page waits until the current wave ends before restarting. Before the restart, it saves the level, player, pie, traps, coins, and speed settings in sessionStorage. The new page restores them. If the browser blocks sessionStorage, the game does not restart automatically, to avoid losing progress.
 
-Эта логика начинает работать после первого открытия версии, которая её содержит. Закрытая PWA не обязана обновляться немедленно: проверка выполняется при следующем запуске или возврате в приложение. Интернет нужен только для получения новой версии, не для обычной офлайн-игры.
+This behavior starts working after the player first opens a version that includes it. A closed PWA is not guaranteed to update immediately: it checks when it next opens or the player returns to it. Internet access is needed to download a new version, not for regular offline play.
 
 ## GitHub Actions
 
-`.github/workflows/ci.yml` запускается на pull request в `main`, на push в `main` (в том числе после merge) и вручную.
+`.github/workflows/ci.yml` runs for pull requests targeting `main`, pushes to `main` (including merges), and manual runs.
 
-Последовательность: установка из lock-файла → тесты → сборка → архив для Sites → артефакт GitHub Actions. Если шаг не прошёл, следующие шаги не запускаются. В pull request не используются секреты или право записи в репозиторий.
+The sequence is: install from the lockfile → tests → build → Sites archive → GitHub Actions artifact. If a step fails, later steps do not run. Pull request runs do not use secrets or repository write permissions.
 
-Готовый архив: `artifacts/fox-and-pie-sites.tar.gz`. Он содержит `.openai/hosting.json` и собранную папку `dist/`. Архив создаётся стандартным tar/gzip, без сторонних пакетов.
+The resulting archive is `artifacts/fox-and-pie-sites.tar.gz`. It contains `.openai/hosting.json` and the built `dist/` directory. The archive uses standard tar/gzip without third-party packages.
 
-## Статус автоматической публикации
+## Automatic publication status
 
-**Автоматическая публикация из GitHub Actions в действующий ChatGPT Site не подключена.**
+**Automatic publication from GitHub Actions to the existing ChatGPT Site is not connected.**
 
-У доступного в этой сессии инструмента Sites есть аутентифицированные операции сохранения версии и публикации. Постоянный CI-ключ, webhook для деплоя или настройка GitHub Actions для существующего сайта не предоставлены. Краткоживущий токен записи исходников не является ключом деплоя, его нельзя использовать как постоянный GitHub Secret.
+The Sites tools available in this session provide authenticated operations to save versions and publish them. No permanent CI credential, deployment webhook, or GitHub Actions integration for the existing site has been provided. A short-lived source repository write token is not a deployment credential and cannot be used as a permanent GitHub Secret.
 
-Поэтому workflow проверяет и собирает игру, но не выдаёт загрузку артефакта за публикацию сайта. В сводке каждого запуска это указано явно.
+The workflow therefore tests and builds the game, but does not present an artifact upload as a site publication. Each workflow run explicitly states this in its summary.
 
-Существующий сайт пока можно обновлять из авторизованной сессии ChatGPT/Codex: передать проверенный исходный commit в source repository этого же Sites project, сохранить соответствующую версию с архивом и опубликовать её через Sites. GitHub SHA нельзя произвольно подставлять вместо SHA ветки источников Sites.
+The existing site can currently be updated through an authenticated ChatGPT/Codex session: push the verified source commit to the source repository for the same Sites project, save the matching version with its archive, and publish it through Sites. A GitHub SHA cannot simply be substituted for the SHA of the Sites source branch.
 
-Для полноценного автоматического деплоя на этот же адрес требуется поддерживаемый Sites механизм авторизации из CI. Если такой механизм появится или будет предоставлен владельцем платформы, отдельный шаг публикации нужно добавить после проверки и сборки. Переезд на другой хостинг или другой адрес здесь не выполняется.
+Fully automatic deployment to the same address requires a supported Sites authentication mechanism for CI. If that mechanism becomes available or is provided by the platform owner, add a separate publication step after testing and building. No migration to another host or address has been performed here.

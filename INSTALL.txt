@@ -1,27 +1,27 @@
-ЛИСЫ И ПИРОГ — PWA
+FOXES & PIE — PWA
 
-ОБЫЧНЫЙ ЗАПУСК
-Откройте index.html в браузере. Игра работает без установки.
-Меню → Полный экран. Браузер может запретить полный экран для локальных файлов.
+REGULAR STARTUP
+Open index.html in a browser. The game works without installation.
+Menu → Full screen. Browsers may block fullscreen mode for local files.
 
-УСТАНОВКА КАК ПРИЛОЖЕНИЯ
-1. Разместите index.html, manifest.webmanifest, sw.js и папку icons вместе на статическом HTTPS-сайте. Файлы могут находиться в отдельной подпапке сайта.
-2. Откройте адрес игры в браузере телефона.
-3. Меню игры → Установить игру. Если браузер не показывает диалог, в его меню выберите «Установить приложение» или «Добавить на главный экран».
-4. Дождитесь сообщения, что игра готова к работе без интернета.
-5. Запускайте игру значком с главного экрана. Запрошены полный экран и горизонтальное положение; браузер решает, какие режимы поддерживаются.
-На iPhone: Поделиться → На экран Домой. Обычно используется режим без адресной строки вместо полного скрытия системных панелей.
+INSTALL AS AN APP
+1. Host index.html, manifest.webmanifest, sw.js, and the icons directory together on a static HTTPS site. The files may be hosted in a subdirectory.
+2. Open the game's address in your phone's browser.
+3. Open the game menu → Install game. If the browser does not show an installation dialog, use its menu and select “Install app” or “Add to Home screen”.
+4. Wait for the message confirming that the game is ready to work offline.
+5. Launch the game from its home screen icon. The app requests fullscreen mode and landscape orientation; the browser determines which modes it supports.
+On iPhone: Share → Add to Home Screen. This usually opens the app without an address bar rather than hiding all system controls.
 
-Файлы, открытые через file:// или content:// (из «Загрузок»), не могут регистрировать service worker и устанавливаться как PWA. Для этого нужен HTTPS. Для проверки на компьютере подходит также http://localhost.
+Files opened through file:// or content:// (from Downloads) cannot register a service worker or be installed as a PWA. These features require HTTPS. For testing on a computer, http://localhost also works.
 
-Игра в этом архиве не опубликована на сервере. Можно разместить папку на своём HTTPS-хостинге.
+The game in this archive is not deployed to a server. You can host the directory on your own HTTPS hosting service.
 
-НОВЫЕ ПРАВИЛА
-После неудачной попытки уровень не меняется, но управление передаётся другому игроку. Потерянный пирог не возвращается.
-За каждое попадание с уроном по боссу выпадают 2 монеты. Сетка и промахи монет не дают. При переигрывании монеты за предыдущую попытку откатываются вместе с прочими монетами волны.
-Если до пирога добрался босс, его здоровье на следующую попытку уменьшается на 10% от предыдущей, но остаётся не ниже 65% от начального. При переходе на новый уровень ослабление сбрасывается.
+NEW RULES
+After a failed attempt, the level stays the same, but control passes to the other player. Lost pie is not restored.
+Each damaging hit on a boss drops 2 coins. Nets and misses do not award coins. When retrying a level, coins earned during the previous attempt are rolled back along with the other wave-related coin changes.
+If a boss reaches the pie, its health in the next attempt decreases by 10% compared with the previous attempt, but never below 65% of its initial health. The reduction resets when advancing to a new level.
 
-АВТООБНОВЛЕНИЕ
-После публикации новой версии на сайте установленную PWA не нужно переустанавливать. При следующем открытии или возврате в игру она проверит обновления. Пока она открыта, проверка также выполняется раз в минуту.
-Новая версия скачивается полностью, затем приложение перезапускается после завершения волны. Уровень, игрок, монеты, ловушки и оставшийся пирог сохраняются. Если браузер не разрешает хранить состояние сессии, вместо перезапуска будет сообщение о готовом обновлении.
-После первого внедрения этого механизма старую версию нужно один раз заново открыть с интернетом. Закрытое приложение не обязано обновляться немедленно в фоне.
+AUTOMATIC UPDATES
+After a new version is published to the site, the installed PWA does not need to be reinstalled. It checks for updates when it next opens or the player returns to the game. While the app is open, it also checks once a minute.
+The new version downloads completely, then the app restarts after the current wave ends. The level, player, coins, traps, and remaining pie are preserved. If the browser does not allow session state to be stored, the app displays a message that an update is ready instead of restarting.
+After this update mechanism is first introduced, reopen the old version once while connected to the internet. A closed app is not guaranteed to update immediately in the background.
