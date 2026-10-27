@@ -1,12 +1,5 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
-const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-function game(){const nodes={},cards=[],staticNodes=[],events={};
-const paint=new Proxy({}, {get:(o,k)=>o[k]||(k==='createLinearGradient'?()=>({addColorStop(){}}):()=>{})});
-function node(){return {dataset:{},style:{setProperty(){}},textContent:'',classList:{toggle(){}},setAttribute(k,v){this[k]=v},append(b){cards.push(b)},getBoundingClientRect(){return {left:0,top:0,width:840,height:600}},getContext(){return paint}};}
-for(let m of html.matchAll(/data-i18n="([^"]+)"/g)){let el=node();el.dataset.i18n=m[1];staticNodes.push(el)}
-const doc={body:node(),documentElement:node(),addEventListener(k,cb){events['doc:'+k]=cb},querySelector:s=>nodes[s]??=node(),querySelectorAll:s=>s==='.card'?cards:s==='[data-i18n]'?staticNodes:[],createElement:node};
-const context={console,Math,URL,setTimeout,document:doc,navigator:{},location:{protocol:'file:'},window:{addEventListener(k,cb){events[k]=cb}},matchMedia:()=>({matches:false}),requestAnimationFrame(){},localStorage:{getItem(){return 'ru'},setItem(){}}};
-vm.createContext(context);vm.runInContext(html.match(/<script>([\s\S]*)<\/script>/)[1],context);return {context,nodes,events};}
+const {game}=require('./helpers/game.cjs');
 (async()=>{const {context:c,nodes,events}=game();
 vm.runInContext(`function check(v,m){if(!v)throw Error(m)}function enemy(extra={}){return {p:1,hp:100,max:100,boss:false,slow:0,jump:0,jumpTraps:[],magic:4,...extra}}function start(){if(!turnReady)$('#ready').onclick();$('#start').onclick()}
 reset();check(currentPlayer()==='Янчик','first player');start();let originalMoney=money;money+=100;failAttempt(enemy());check(level===1&&playerIndex===1&&currentPlayer()==='Мартин'&&pie===9,'failure passes to Martin');check(money===originalMoney,'wave earnings rollback');start();failAttempt(enemy());check(playerIndex===0&&level===1&&pie===8,'failure passes back to Jan');start();spawned=total;foxes=[];update(0);check(level===2&&playerIndex===1,'success passes to next player');start();failAttempt(enemy());check(level===2&&playerIndex===0,'retry independent of level parity');

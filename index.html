@@ -145,13 +145,41 @@ function tr(key,params={}){let text=translations[key][language];return text.repl
 function localizedParams(params={}){return Object.fromEntries(Object.entries(params).map(([k,v])=>[k,v&&typeof v==='object'&&v.key?tr(v.key):v]))}
 function renderMessage(){if(lastMessage)$('#message').textContent=tr(lastMessage.key,localizedParams(lastMessage.params))}
 function playerKey(){return playerIndex===0?'nameY':'nameM'}
-let installPrompt=null,pwaStatusKey=null,pwaInstalled=false;
+let installPrompt=null,pwaStatusKey=null,pwaInstalled=false,fullscreenOptOut=false,autoFullscreenAttempted=false,fullscreenTask=null,wasApiFullscreen=false;
 function installedMode(){return pwaInstalled||(typeof matchMedia==='function'&&(matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches))||(typeof navigator!=='undefined'&&navigator.standalone===true);}
-function pwaUi(){let active=!!(document.fullscreenElement||document.webkitFullscreenElement),installed=installedMode();$('#fullscreen').textContent=tr(active?'exitFullscreen':'fullscreen');$('#fullscreen').hidden=installed&&!active;$('#installGame').hidden=installed;let status=tr(installed?'appInstalled':pwaStatusKey||'appInstallHint');if($('#appStatus').textContent!==status)$('#appStatus').textContent=status;}
+function pwaUi(){let active=!!(document.fullscreenElement||document.webkitFullscreenElement),installed=installedMode();$('#fullscreen').textContent=tr(active?'exitFullscreen':'fullscreen');$('#fullscreen').hidden=false;$('#installGame').hidden=installed;let status=tr(installed?'appInstalled':pwaStatusKey||'appInstallHint');if($('#appStatus').textContent!==status)$('#appStatus').textContent=status;}
+function apiFullscreenActive(){return !!(document.fullscreenElement||document.webkitFullscreenElement);}
+function refreshFullscreenLayout(){updateDeviceLayout();fitBoard();pwaUi();requestAnimationFrame(()=>{updateDeviceLayout();fitBoard()});setTimeout(()=>{updateDeviceLayout();fitBoard()},200);}
+function enterImmersiveFullscreen(){
+if(apiFullscreenActive())return Promise.resolve();
+if(fullscreenTask)return fullscreenTask;
+// Call in the original click handler, before any await: Android needs a user gesture.
+const task=(async()=>{
+
+  const root=document.documentElement;
+  if(root.requestFullscreen)await root.requestFullscreen({navigationUI:'hide'});
+  else {const enter=root.webkitRequestFullscreen||root.webkitRequestFullScreen;if(!enter)throw Error('Fullscreen unavailable');await enter.call(root);}
+  wasApiFullscreen=apiFullscreenActive();
+  if(phoneMode&&typeof screen!=='undefined'&&screen.orientation&&screen.orientation.lock){try{await screen.orientation.lock('landscape')}catch{}}
+  refreshFullscreenLayout();
+})();
+fullscreenTask=task;
+const clear=()=>{if(fullscreenTask===task)fullscreenTask=null;};
+void task.then(clear,clear);
+return task;
+}
+function startPhoneFullscreen(){
+if(!phoneMode||fullscreenOptOut||autoFullscreenAttempted||apiFullscreenActive())return;
+autoFullscreenAttempted=true;
+// A denied automatic request must not interrupt the game or open the settings menu.
+void enterImmersiveFullscreen().catch(()=>{});
+}
 $('#fullscreen').onclick=async()=>{
 $('#settings').open=false;
-try{let active=document.fullscreenElement||document.webkitFullscreenElement;if(active){let exit=document.exitFullscreen||document.webkitExitFullscreen;if(exit)await exit.call(document);}else{let root=document.documentElement,enter=root.requestFullscreen||root.webkitRequestFullscreen;if(!enter)throw Error('Fullscreen unavailable');await enter.call(root);if(phoneMode&&typeof screen!=='undefined'&&screen.orientation&&screen.orientation.lock){try{await screen.orientation.lock('landscape')}catch{}}}updateDeviceLayout();pwaUi();}
-catch{pwaStatusKey='fullscreenUnsupported';$('#settings').open=true;pwaUi();}
+try{
+ if(apiFullscreenActive()){fullscreenOptOut=true;const exit=document.exitFullscreen||document.webkitExitFullscreen;if(exit)await exit.call(document);refreshFullscreenLayout();}
+ else{fullscreenOptOut=false;await enterImmersiveFullscreen();}
+}catch{pwaStatusKey='fullscreenUnsupported';$('#settings').open=true;pwaUi();}
 };
 $('#installGame').onclick=async()=>{if(!installPrompt){pwaStatusKey=typeof location!=='undefined'&&!/^https?:$/.test(location.protocol)?'appLocal':'appInstallHint';pwaUi();return;}let prompt=installPrompt;installPrompt=null;try{await prompt.prompt();await prompt.userChoice;}catch{}pwaUi();};
 async function registerOffline(){
@@ -166,8 +194,9 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installProm
 window.addEventListener('appinstalled',()=>{pwaInstalled=true;installPrompt=null;pwaUi();});
 window.addEventListener('load',registerOffline);
 }
-document.addEventListener('fullscreenchange',()=>{updateDeviceLayout();pwaUi()});
-document.addEventListener('webkitfullscreenchange',()=>{updateDeviceLayout();pwaUi()});
+function fullscreenChanged(){const active=apiFullscreenActive();if(wasApiFullscreen&&!active)fullscreenOptOut=true;wasApiFullscreen=active;refreshFullscreenLayout();}
+document.addEventListener('fullscreenchange',fullscreenChanged);
+document.addEventListener('webkitfullscreenchange',fullscreenChanged);
 function renderTrapCard(b,i){let t=types[i];b.innerHTML='<span class="card-full">'+tr('trap'+i)+' · '+t.cost+' 🪙</span><span class="card-compact"><b>'+tr('shortTrap'+i)+'</b><span>'+t.cost+' 🪙</span></span><small>'+tr('desc'+i)+' · '+tr('uses',{n:t.uses})+'</small>';b.setAttribute('aria-label',tr('trap'+i)+' · '+t.cost+' 🪙 · '+tr('desc'+i));}
 function updateLanguage(){document.documentElement.lang=language;document.title=tr('pageTitle');document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=tr(el.dataset.i18n));canvas.setAttribute('aria-label',tr('canvasLabel'));$('#language').value=language;document.querySelectorAll('.card').forEach(renderTrapCard);renderMessage();ui()}
 $('#language').onchange=e=>{language=['ru','en','nl'].includes(e.target.value)?e.target.value:'ru';try{localStorage.setItem('foxPieLanguage',language)}catch{}updateLanguage()};
@@ -212,10 +241,10 @@ function say(key,params={}){sound(({built:'build',repaired:'repair',worn:'broken
 function ui(){soundButton();pwaUi();let name=currentPlayer();$('#player').textContent=tr(over?'finished':running?'playing':'next',{name});$('#turn').dataset.player=String(playerIndex);$('#turn').dataset.active=String(turnReady);$('#turnHint').textContent=tr(over?'thanks':retryPending?'retryHint':!turnReady?'handoffHint':running?'defendHint':'prepareHint');$('#ready').disabled=turnReady||over;$('#ready').textContent=tr(retryPending?'readyRetry':'ready',{name});$('#world').textContent='🌍 '+tr('world'+Math.floor((level-1)/10));$('#level').textContent=tr('level',{n:level})+(level%10===0?tr('boss'):'');let balance=tr('coins',{n:money});if($('#money').textContent!==balance)$('#money').textContent=balance;$('#pie').textContent='🥧 '+pie+'/10';$('#start').disabled=running||over||!turnReady;$('#start').textContent=tr(level%10===0?'summon':'start');$('#speed').textContent=tr('speed',{n:speed});document.querySelectorAll('.card').forEach((b,i)=>{b.classList.toggle('selected',selected===i);b.disabled=over;b.setAttribute('aria-pressed',String(selected===i))});trapPanel();placementPanel();}
 types.forEach((t,i)=>{let b=document.createElement('button');b.className='card';renderTrapCard(b,i);b.onclick=()=>{selected=i;selectedTrap=null;pendingPlacement=null;ui()};$('#cards').append(b)});
 function reset(){playerIndex=0;bossRetryCount=0;pendingPlacement=null;level=1;money=155;pie=10;traps=[];foxes=[];effects=[];running=false;over=false;turnReady=false;selectedTrap=null;waveSnapshot=null;retryPending=false;loadMaze();say('initial');ui()}
-$('#ready').onclick=()=>{if(over||turnReady)return;turnReady=true;say('yourTurn',{name:{key:playerKey()}});ui()};
+$('#ready').onclick=()=>{if(over||turnReady)return;startPhoneFullscreen();turnReady=true;say('yourTurn',{name:{key:playerKey()}});ui()};
 $('#restart').onclick=()=>{$('#settings').open=false;reset()};const speeds=[1,2,5,10];
 $('#speed').onclick=()=>{speed=speeds[(speeds.indexOf(speed)+1)%speeds.length];ui()};
-$('#start').onclick=()=>{if(running||over||!turnReady)return;pendingPlacement=null;waveSnapshot={money,traps:traps.map(t=>({...t}))};retryPending=false;selectedTrap=null;running=true;spawned=0;total=5+Math.floor(level*.8);spawnTimer=0;say(level%10===0?'bossWave':'wave');ui()};
+$('#start').onclick=()=>{if(running||over||!turnReady)return;startPhoneFullscreen();pendingPlacement=null;waveSnapshot={money,traps:traps.map(t=>({...t}))};retryPending=false;selectedTrap=null;running=true;spawned=0;total=5+Math.floor(level*.8);spawnTimer=0;say(level%10===0?'bossWave':'wave');ui()};
 function cell(e){let r=canvas.getBoundingClientRect();if(phoneMode&&manualLandscape)return{x:Math.floor((e.clientY-r.top)/r.height*W),y:Math.floor(((r.left+r.width)-e.clientX)/r.width*H)};return{x:Math.floor((e.clientX-r.left)/r.width*W),y:Math.floor((e.clientY-r.top)/r.height*H)}}
 canvas.onpointermove=e=>hover=cell(e);canvas.onpointerleave=()=>hover=null;
 function tierOf(t){return t.tier||0}
