@@ -1,4 +1,4 @@
-name: Build and test
+name: Build, test and deploy
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
@@ -30,28 +30,34 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
-      - name: Run game, offline-cache and build tests
+      - name: Run game, offline-cache, fullscreen and build tests
         run: npm test
       - name: Build offline PWA
         run: npm run build
-      - name: Package existing Sites deployment artifact
-        run: npm run package:sites
-      - name: Validate archive structure
-        run: tar -tzf artifacts/fox-and-pie-sites.tar.gz
-      - name: Upload verified deployment artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
         with:
-          name: fox-and-pie-sites-${{ github.sha }}
-          path: artifacts/fox-and-pie-sites.tar.gz
-          if-no-files-found: error
-          retention-days: 14
-      - name: Explain publication status
-        shell: bash
-        run: |
-          cat >> "$GITHUB_STEP_SUMMARY" <<'SUMMARY'
-          ### PWA verified and packaged
-          Tests and build passed. The archive contains the current PWA and the existing Sites project identity.
+          path: dist
+          retention-days: 7
 
-          **Automatic publication to ChatGPT Sites is not configured.**
-          The available Sites integration currently requires an authenticated ChatGPT/Codex session to save and deploy a version. This workflow deliberately does not use temporary session credentials or pretend that uploading an artifact publishes the site.
-          SUMMARY
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Deploy verified PWA
+        id: deployment
+        uses: actions/deploy-pages@v4

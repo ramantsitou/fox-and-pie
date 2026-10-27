@@ -4,7 +4,7 @@ Created by my son **Jan** and his friend **Martin** through **vibe coding**, tur
 
 A browser game by Jan and Martin: place traps and protect the pie from foxes, wolves, bears, and hares. Features include Russian, English, and Dutch interfaces, alternating player turns, sound effects, trap upgrades, and a mobile layout.
 
-Live site: https://fox-pie-yanchik-martin.freshflame33.chatgpt.site
+Live site: https://ramantsitou.github.io/fox-and-pie/
 
 ## Development
 
@@ -38,22 +38,24 @@ The app checks for a new service worker when it opens, when the player returns t
 
 This behavior starts working after the player first opens a version that includes it. A closed PWA is not guaranteed to update immediately: it checks when it next opens or the player returns to it. Internet access is needed to download a new version, not for regular offline play.
 
-## GitHub Actions
+## GitHub Actions and deployment
 
 `.github/workflows/ci.yml` runs for pull requests targeting `main`, pushes to `main` (including merges), and manual runs.
 
-The sequence is: install from the lockfile → tests → build → Sites archive → GitHub Actions artifact. If a step fails, later steps do not run. Pull request runs do not use secrets or repository write permissions.
+The sequence is: install from the lockfile → tests → build → upload the Pages artifact → deploy to GitHub Pages. The deployment job depends on successful verification and runs only for `main`, never for pull requests. A failed test or build prevents publication. Only the deployment job receives `pages: write` and `id-token: write`; pull requests have read-only repository access. No personal deployment token is required.
 
-The resulting archive is `artifacts/fox-and-pie-sites.tar.gz`. It contains `.openai/hosting.json` and the built `dist/` directory. The archive uses standard tar/gzip without third-party packages.
+The site is published from the contents of `dist/` at:
 
-## Automatic publication status
+https://ramantsitou.github.io/fox-and-pie/
 
-**Automatic publication from GitHub Actions to the existing ChatGPT Site is not connected.**
+The app's manifest, service worker, and icon paths are relative, so the `/fox-and-pie/` project-site path works for installation and offline play. The `github-pages` environment links to each deployment. In repository settings, Pages uses **GitHub Actions** as its publishing source.
 
-The Sites tools available in this session provide authenticated operations to save versions and publish them. No permanent CI credential, deployment webhook, or GitHub Actions integration for the existing site has been provided. A short-lived source repository write token is not a deployment credential and cannot be used as a permanent GitHub Secret.
+### Moving from the previous Sites address
 
-The workflow therefore tests and builds the game, but does not present an artifact upload as a site publication. Each workflow run explicitly states this in its summary.
+The previous site was hosted at https://fox-pie-yanchik-martin.freshflame33.chatgpt.site. It is not updated by this workflow. GitHub Pages is now the deployment target.
 
-The existing site can currently be updated through an authenticated ChatGPT/Codex session: push the verified source commit to the source repository for the same Sites project, save the matching version with its archive, and publish it through Sites. A GitHub SHA cannot simply be substituted for the SHA of the Sites source branch.
+If you installed the PWA from the old address, open the new GitHub Pages address and install it again once. The old installation cannot change its origin automatically. Future updates are downloaded from GitHub Pages; you do not need to reinstall for each release. Browser storage and existing game progress do not transfer between the two origins.
 
-Fully automatic deployment to the same address requires a supported Sites authentication mechanism for CI. If that mechanism becomes available or is provided by the platform owner, add a separate publication step after testing and building. No migration to another host or address has been performed here.
+### Optional legacy Sites packaging
+
+`scripts/package-sites.mjs`, the `npm run package:sites` command, and `.openai/hosting.json` remain available for legacy compatibility, but they are not part of the GitHub Pages deployment workflow. GitHub Actions does not publish to ChatGPT Sites.
