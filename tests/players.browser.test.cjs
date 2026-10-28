@@ -14,7 +14,7 @@ for(const mobile of [false,true]){
  assert.equal(await page.locator('.player-row:visible').count(),4);
  await page.screenshot({path:path.join(output,mobile?'setup-phone.png':'setup-desktop.png')});
  await page.click('#createPlayers');assert.equal(await page.locator('#playersDialog').evaluate(e=>e.open),false);
- if(mobile)await page.click('#manualRotate');await page.evaluate(()=>startPhoneFullscreen=()=>{});
+ await page.evaluate(()=>startPhoneFullscreen=()=>{});
  await page.click('#ready');assert.equal(await page.locator('#currentPlayerBadge').textContent(),'🟠 Аня');
  for(const [type,x] of [[0,2],[1,6],[2,9]]){
  await page.locator('.card').nth(type).click();const point=await page.evaluate(x=>{const r=canvas.getBoundingClientRect();return manualLandscape?{x:r.right-.5*r.width/10,y:r.top+(x+.5)*r.height/14}:{x:r.left+(x+.5)*r.width/14,y:r.top+.5*r.height/10}},x);
@@ -22,8 +22,18 @@ for(const mobile of [false,true]){
  }
  await page.click('#start');await page.waitForTimeout(3500);assert.equal(await page.evaluate(()=>running),true);
  await page.screenshot({path:path.join(output,mobile?'gameplay-phone.png':'gameplay-desktop.png')});
+ if(mobile){
+ assert.equal(await page.locator('#rotatePrompt').count(),0);
+ await page.click('#menuToggle');const before=await page.evaluate(()=>JSON.stringify({level,pie,money,players,playerIndex,traps,foxes}));
+ for(const [width,height,rotated] of [[844,390,false],[390,844,true],[844,390,false],[390,844,true]]){
+  await page.setViewportSize({width,height});await page.waitForFunction(expected=>manualLandscape===expected,rotated);
+  assert.equal(await page.evaluate(()=>JSON.stringify({level,pie,money,players,playerIndex,traps,foxes})),before,'rotation preserves the paused game');
+  assert.equal(await page.evaluate(()=>{const r=canvas.getBoundingClientRect();return Math.abs((manualLandscape?r.height/r.width:r.width/r.height)-1.4)<.002}),true);
+ }
+ await page.click('#resumeBattle');assert.equal(await page.evaluate(()=>isPaused()),false);
+ }
  await page.reload();await page.waitForFunction(()=>atlasReady);assert.equal(await page.locator('#playersDialog').evaluate(e=>e.open),false);assert.deepEqual(await page.evaluate(()=>players),['Аня','Борис','София','Макс']);assert.equal(await page.evaluate(()=>resumeWave),true);
- if(mobile)await page.click('#manualRotate');await page.evaluate(()=>startPhoneFullscreen=()=>{});await page.click('#ready');
+ await page.evaluate(()=>startPhoneFullscreen=()=>{});await page.click('#ready');
  await page.evaluate(()=>{failAttempt({boss:false});failAttempt({boss:false})});assert.equal(await page.locator('#currentPlayerBadge').textContent(),'🟢 София');
  await page.screenshot({path:path.join(output,mobile?'handoff-phone.png':'handoff-desktop.png')});
  await page.click('#menuToggle');await page.click('#restart');await page.click('#cancelRestart');assert.equal(await page.locator('#playersDialog').evaluate(e=>e.open),false);

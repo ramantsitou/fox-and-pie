@@ -4,7 +4,7 @@ const root=path.resolve(__dirname,'..'),out=path.join(root,'artifacts/victory');
 const {createStaticHandler}=require('./helpers/static-server.cjs');
 (async()=>{const server=http.createServer(createStaticHandler(root+'/dist')).listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const browser=await chromium.launch();
 try{for(const lang of ['ru','en','nl'])for(const [w,h] of [[1280,900],[844,390],[568,320],[390,844],[320,568]]){
-const context=await browser.newContext({viewport:{width:w,height:h},screen:{width:w,height:h},isMobile:w!==1280,hasTouch:w!==1280,locale:lang});const page=await context.newPage();page.on('pageerror',e=>{throw e});await page.goto('http://127.0.0.1:'+server.address().port);await page.click('#createPlayers');if(h>w)await page.click('#manualRotate');await page.evaluate(()=>startPhoneFullscreen=()=>{});
+const context=await browser.newContext({viewport:{width:w,height:h},screen:{width:w,height:h},isMobile:w!==1280,hasTouch:w!==1280,locale:lang});const page=await context.newPage();page.on('pageerror',e=>{throw e});await page.goto('http://127.0.0.1:'+server.address().port);await page.click('#createPlayers');await page.evaluate(()=>startPhoneFullscreen=()=>{});
 // Exercise actual wave-completion logic with the final wave already defeated.
 await page.evaluate(()=>{level=50;loadMaze();turnReady=true;$('#start').onclick();spawned=total;foxes=[];update(0)});
 assert.equal(await page.locator('#victoryDialog').evaluate(e=>e.open),true);
