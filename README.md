@@ -8,6 +8,10 @@ A browser game by Jan and Martin: place traps and protect the pie from foxes, wo
 
 Level 5 · Android emulator · normal speed
 
+<a href="https://ramantsitou.github.io/fox-and-pie/"><img src="docs/play-qr.png" alt="Scan this QR code to play Foxes & Pie" width="300" height="300"></a>
+
+Scan the QR code to play on your phone.
+
 Play: https://ramantsitou.github.io/fox-and-pie/
 
 ## Development
