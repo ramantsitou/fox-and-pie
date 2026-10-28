@@ -15,7 +15,7 @@ for(const mobile of [false,true]){
  await page.screenshot({path:path.join(output,mobile?'setup-phone.png':'setup-desktop.png')});
  await page.click('#createPlayers');assert.equal(await page.locator('#playersDialog').evaluate(e=>e.open),false);
  if(mobile)await page.click('#manualRotate');await page.evaluate(()=>startPhoneFullscreen=()=>{});
- await page.click('#ready');assert((await page.locator('#currentPlayerBadge').textContent()).includes('Аня'));
+ await page.click('#ready');assert.equal(await page.locator('#currentPlayerBadge').textContent(),'🟠 Аня');
  for(const [type,x] of [[0,2],[1,6],[2,9]]){
  await page.locator('.card').nth(type).click();const point=await page.evaluate(x=>{const r=canvas.getBoundingClientRect();return manualLandscape?{x:r.right-.5*r.width/10,y:r.top+(x+.5)*r.height/14}:{x:r.left+(x+.5)*r.width/14,y:r.top+.5*r.height/10}},x);
  await page.mouse.click(point.x,point.y);if(mobile)await page.click('#confirmPlace');else await page.click('#backToShop');
@@ -24,7 +24,7 @@ for(const mobile of [false,true]){
  await page.screenshot({path:path.join(output,mobile?'gameplay-phone.png':'gameplay-desktop.png')});
  await page.reload();await page.waitForFunction(()=>atlasReady);assert.equal(await page.locator('#playersDialog').evaluate(e=>e.open),false);assert.deepEqual(await page.evaluate(()=>players),['Аня','Борис','София','Макс']);assert.equal(await page.evaluate(()=>resumeWave),true);
  if(mobile)await page.click('#manualRotate');await page.evaluate(()=>startPhoneFullscreen=()=>{});await page.click('#ready');
- await page.evaluate(()=>{failAttempt({boss:false});failAttempt({boss:false})});assert((await page.locator('#currentPlayerBadge').textContent()).includes('София'));
+ await page.evaluate(()=>{failAttempt({boss:false});failAttempt({boss:false})});assert.equal(await page.locator('#currentPlayerBadge').textContent(),'🟢 София');
  await page.screenshot({path:path.join(output,mobile?'handoff-phone.png':'handoff-desktop.png')});
  await page.click('#menuToggle');await page.click('#restart');await page.click('#cancelRestart');assert.equal(await page.locator('#playersDialog').evaluate(e=>e.open),false);
  await page.click('#menuToggle');await page.click('#restart');await page.click('#confirmRestart');assert.equal(await page.locator('#playersDialog').evaluate(e=>e.open),true);

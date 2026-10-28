@@ -15,6 +15,7 @@ test('build packages all PWA resources and has a content-based cache version',as
  for(const icon of manifest.icons)assert((await readFile(path.join(root,'dist',icon.src))).length>0);
  assert.deepEqual(await readFile(path.join(root,'dist/assets/woodland-atlas.png')),await readFile(path.join(root,'assets/woodland-atlas.png')));
  assert.match(await readFile(path.join(root,'dist/sw.js'),'utf8'),/assets\/woodland-atlas\.png/);
+ assert.deepEqual(await readFile(path.join(root,'dist/assets/friends.jpg')),await readFile(path.join(root,'assets/friends.jpg')));
  const html=await readFile(path.join(root,'index.html'),'utf8');await writeFile(path.join(root,'index.html'),html+'\n<!-- changed app -->');
  const changed=await buildProject(root);assert.notEqual(changed.cacheVersion,first.cacheVersion);
 });

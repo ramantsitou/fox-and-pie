@@ -23,7 +23,7 @@ export async function buildProject(root=projectRoot){
   const manifest=JSON.parse(await readFile(path.join(root,'manifest.webmanifest'),'utf8'));
   if(manifest.scope!=='./'||manifest.start_url!=='./index.html')fail('PWA scope/start URL must support subfolder hosting');
   if(manifest.display!=='fullscreen'||manifest.orientation!=='landscape')fail('Expected fullscreen landscape PWA');
-  const files=new Set(['index.html','manifest.webmanifest','icons/apple-touch-icon.png','assets/woodland-atlas.png']);
+  const files=new Set(['index.html','manifest.webmanifest','icons/apple-touch-icon.png','assets/woodland-atlas.png','assets/friends.jpg']);
   for(const icon of manifest.icons??[]){
     if(icon.type!=='image/png')fail('Expected PNG app icons');
     const bytes=await readFile(localPath(root,icon.src));
