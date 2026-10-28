@@ -1,6 +1,12 @@
 const assert=require('node:assert/strict'),vm=require('node:vm');
 const {game}=require('./helpers/game.cjs');
 (async()=>{
+// Android emulators and phones with a mouse can report a fine pointer.
+for(const [ua,touch,expected] of [['Mozilla/5.0 Android',5,true],['Mozilla/5.0 iPhone',5,true],['Mozilla/5.0 Windows',5,false],['Mozilla/5.0 Android',0,false]]){
+ const g=game({navigator:{userAgent:ua,maxTouchPoints:touch},screen:{width:412,height:732},innerWidth:412,innerHeight:604});
+ vm.runInContext('updateDeviceLayout()',g.context);assert.equal(vm.runInContext('phoneMode',g.context),expected);
+}
+
 const {context:c,nodes}=game({devicePixelRatio:2});
 vm.runInContext('phoneMode=true',c);
 const holder=c.document.querySelector('.board-holder'),field=c.document.querySelector('.field'),canvas=c.document.querySelector('#game');
