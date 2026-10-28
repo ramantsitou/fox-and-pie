@@ -23,7 +23,7 @@ export async function buildProject(root=projectRoot){
   const manifest=JSON.parse(await readFile(path.join(root,'manifest.webmanifest'),'utf8'));
   if(manifest.scope!=='./'||manifest.start_url!=='./index.html')fail('PWA scope/start URL must support subfolder hosting');
   if(manifest.display!=='fullscreen'||manifest.orientation!=='landscape')fail('Expected fullscreen landscape PWA');
-  const files=new Set(['index.html','manifest.webmanifest','icons/apple-touch-icon.png']);
+  const files=new Set(['index.html','manifest.webmanifest','icons/apple-touch-icon.png','assets/woodland-atlas.png']);
   for(const icon of manifest.icons??[]){
     if(icon.type!=='image/png')fail('Expected PNG app icons');
     const bytes=await readFile(localPath(root,icon.src));
@@ -33,6 +33,8 @@ export async function buildProject(root=projectRoot){
     files.add(icon.src);
   }
   if(!(manifest.icons??[]).some(i=>i.sizes==='192x192')||!(manifest.icons??[]).some(i=>i.sizes==='512x512'))fail('Both 192px and 512px app icons are required');
+  const atlas=await readFile(localPath(root,'assets/woodland-atlas.png'));
+  if(atlas.length<24||atlas.subarray(0,8).toString('hex')!=='89504e470d0a1a0a'||atlas.readUInt32BE(16)!==atlas.readUInt32BE(20))fail('Expected square PNG sprite atlas');
   const digest=createHash('sha256');
   for(const file of [...files].sort()){digest.update(file+'\0');digest.update(await readFile(localPath(root,file)));digest.update('\0');}
   // Worker source also invalidates offline caches when caching behaviour changes.
