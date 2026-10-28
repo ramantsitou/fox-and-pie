@@ -99,3 +99,5 @@ The install button opens the browser’s native installation prompt when availab
 Run `npm run test:install-browser` with Playwright Chromium and Firefox installed to verify installation instructions, mobile layouts, and failure feedback in both engines. Platform identities are simulated; native installation still requires testing on the target phone.
 
 Player setup uses a landscape two-column layout: the player list scrolls on the left, while language, Play and installation remain accessible on the right. Installation help can be opened before starting a game without losing entered names. The installation action is hidden in installed mode.
+
+During name entry, a compact keyboard layout keeps the active field visible and offers Next/Done without starting the game. Keyboard viewport changes retain the pre-keyboard orientation; actual orientation changes still update the layout. `npm run test:keyboard-browser` exercises simulated keyboard resizing in Chromium and Firefox, including four-player entry and layout-viewport resizing. Physical phone keyboard verification remains separate.
