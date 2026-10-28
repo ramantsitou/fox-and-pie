@@ -1,7 +1,7 @@
 'use strict';
 const CACHE_PREFIX = 'fox-pie-pwa-';
 const CACHE = CACHE_PREFIX + '2026-10-27-v1';
-const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png', './assets/woodland-atlas.png', './assets/friends.jpg'];
+const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png', './assets/woodland-atlas.png', './assets/friends.jpg','./assets/friends-portrait.jpg'];
 const urls = FILES.map(path => new URL(path, self.registration.scope).href);
 self.addEventListener('install', event => {
   // Activate only after every new offline asset has been cached successfully.
