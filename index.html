@@ -470,12 +470,34 @@ function isPaused(){return running&&(manualPaused||visibilityPaused||!!$('#setti
 function gameSnapshot(){return {version:1,level,playerIndex,bossRetryCount,money,pie,traps:traps.map(t=>({...t})),selected,speed,turnReady,retryPending,over,lastResult,seenKinds:[...seenKinds]};}
 function saveGame(replayWave=false){if(!saveEnabled||!saveAvailable||running)return false;try{const json=JSON.stringify({...gameSnapshot(),replayWave:replayWave||(resumePending&&resumeWave)});if(json!==lastSavedGame){localStorage.setItem(SAVE_GAME_KEY,json);lastSavedGame=json;}return true;}catch{saveAvailable=false;return false;}}
 function readSavedGame(){try{const raw=localStorage.getItem(SAVE_GAME_KEY);return raw?JSON.parse(raw):null;}catch{return null;}}
+function cleanSavedResult(result){
+if(!result||!['passed','retry'].includes(result.kind)||!Number.isInteger(result.level)||result.level<1||result.level>50)return null;
+const clean={kind:result.kind,level:result.level};
+if(result.kind==='retry'){
+if(!Number.isInteger(result.loss)||result.loss<0||result.loss>10||!Number.isInteger(result.pie)||result.pie<0||result.pie>10)return null;
+clean.loss=result.loss;clean.pie=result.pie;
+}
+if(result.refund!==undefined){if(!Number.isFinite(result.refund)||result.refund<0||result.refund>1e9)return null;clean.refund=result.refund;}
+return clean;
+}
 function restoreGameState(state){
+try{
 if(!state||state.version!==1||!Number.isInteger(state.level)||state.level<1||state.level>50||![0,1].includes(state.playerIndex)||!Number.isFinite(state.money)||state.money<0||state.money>1e9||!Number.isInteger(state.pie)||state.pie<0||state.pie>10||!Array.isArray(state.traps))return false;
-level=state.level;playerIndex=state.playerIndex;money=state.money;pie=state.pie;bossRetryCount=Number.isInteger(state.bossRetryCount)&&state.bossRetryCount>=0?state.bossRetryCount:0;loadMaze();
-const cells=new Set();traps=state.traps.filter(t=>t&&Number.isInteger(t.x)&&t.x>=0&&t.x<W&&Number.isInteger(t.y)&&t.y>=0&&t.y<H&&Number.isInteger(t.type)&&t.type>=0&&t.type<types.length&&Number.isInteger(t.uses)&&t.uses>=0&&[0,1,2].includes(t.tier||0)).filter(t=>{let key=t.x+','+t.y;if(cells.has(key))return false;cells.add(key);return true}).map(t=>({...t,uses:Math.min(t.uses,durability(t)),cd:0,invested:Number.isFinite(t.invested)&&t.invested>=types[t.type].cost?t.invested:types[t.type].cost}));
-selected=Number.isInteger(state.selected)&&state.selected>=0&&state.selected<types.length?state.selected:0;speed=speeds.includes(state.speed)?state.speed:1;over=pie===0||!!state.over;turnReady=!over&&!!state.turnReady;retryPending=!over&&!!state.retryPending;running=false;foxes=[];effects=[];waveSnapshot=null;selectedTrap=null;pendingPlacement=null;manualPaused=false;visibilityPaused=false;
-lastResult=state.lastResult&&['passed','retry'].includes(state.lastResult.kind)?state.lastResult:null;seenKinds=Array.isArray(state.seenKinds)?state.seenKinds.filter(k=>['fox','wolf','bear','hare','boss'].includes(k)):[];showPlacementHints=traps.length===0;return true;
+// Normalize saved data before applying it; never retain arbitrary object fields.
+const cells=new Set(),savedTraps=[];
+for(const t of state.traps){
+if(!t||!Number.isInteger(t.x)||t.x<0||t.x>=W||!Number.isInteger(t.y)||t.y<0||t.y>=H||!Number.isInteger(t.type)||t.type<0||t.type>=types.length||!Number.isInteger(t.uses)||t.uses<0||![0,1,2].includes(t.tier??0))continue;
+const key=t.x+','+t.y;if(cells.has(key))continue;cells.add(key);
+const clean={x:t.x,y:t.y,type:t.type,tier:t.tier??0,uses:t.uses,broken:t.broken===true,cd:0};
+clean.uses=Math.min(clean.uses,durability(clean));
+clean.invested=Number.isFinite(t.invested)&&t.invested>=types[t.type].cost&&t.invested<=1e9?t.invested:types[t.type].cost;
+savedTraps.push(clean);
+}
+const result=cleanSavedResult(state.lastResult),kinds=Array.isArray(state.seenKinds)?[...new Set(state.seenKinds.filter(k=>['fox','wolf','bear','hare','boss'].includes(k)))]:[];
+level=state.level;playerIndex=state.playerIndex;money=state.money;pie=state.pie;bossRetryCount=Number.isSafeInteger(state.bossRetryCount)&&state.bossRetryCount>=0?state.bossRetryCount:0;loadMaze();traps=savedTraps;
+selected=Number.isInteger(state.selected)&&state.selected>=0&&state.selected<types.length?state.selected:0;speed=speeds.includes(state.speed)?state.speed:1;over=pie===0||state.over===true;turnReady=!over&&state.turnReady===true;retryPending=!over&&state.retryPending===true;running=false;foxes=[];effects=[];waveSnapshot=null;selectedTrap=null;pendingPlacement=null;manualPaused=false;visibilityPaused=false;
+lastResult=result;seenKinds=kinds;showPlacementHints=traps.length===0;return true;
+}catch{return false;}
 }
 function waveRoster(){const counts=new Map(),count=5+Math.floor(level*.8);for(let i=0;i<count;i++){const kind=enemyKind(level,i,level%10===0&&i===count-1);counts.set(kind,(counts.get(kind)||0)+1);}return [...counts].map(([kind,count])=>({kind,count}));}
 function setUiText(selector,text){const element=$(selector);if(element.textContent!==text)element.textContent=text;}

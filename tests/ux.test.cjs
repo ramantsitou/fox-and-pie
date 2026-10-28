@@ -18,4 +18,23 @@ for(const lang of ['ru','en','nl']){run(c,`language='${lang}';level=5;money=1000
 run(c,"level=10;loadMaze();money=123;traps=[];turnReady=true;$('#start').onclick();failAttempt({boss:true});ui()");saved=JSON.parse(store.map.get('foxPieSavedGameV1'));assert.equal(saved.pie,7);assert.equal(saved.playerIndex,1);assert.equal(saved.bossRetryCount,1);assert.equal(saved.lastResult.kind,'retry');assert.equal(saved.lastResult.loss,3);assert(n['#turnResult'].textContent.includes('7/10'));assert(n['#turnResult'].textContent.includes('3'));
 store.map.set('foxPieSavedGameV1','{broken json');assert.doesNotThrow(()=>game({localStorage:store}));store.map.set('foxPieSavedGameV1',JSON.stringify({...saved,level:99}));assert.equal(run(game({localStorage:store}).context,'level'),1);
 g=game({localStorage:{getItem(){return null},setItem(){throw Error('blocked')}}});assert.equal(run(g.context,'saveAvailable'),false);assert.equal(g.nodes['#saveWarning'].hidden,false);assert.doesNotThrow(()=>g.nodes['#ready'].onclick());
-console.log('PASS: autosave and continue; wave checkpoint recovery; manual/menu/background pause; safe restart/cancel; legal placement; upgrade previews and new enemies in 3 languages; failed-turn persistence; corrupt and blocked storage');
+// Malformed optional metadata must not destroy an otherwise valid saved game.
+const valid={version:1,level:7,playerIndex:1,money:222,pie:6,traps:[{x:2,y:2,type:0,tier:1,uses:40,invested:81,broken:false}],speed:5};
+function restoreFixture(data){const s=storage();s.map.set('foxPieSavedGameV1',JSON.stringify(data));return game({localStorage:s})}
+for(const result of [{kind:'retry',level:7,loss:{toString:0},pie:6},{kind:'passed',level:7,refund:{toString:0}},{kind:'retry',level:7,loss:1,pie:99}]){
+ const restored=restoreFixture({...valid,lastResult:result});
+ assert.equal(run(restored.context,'lastResult'),null);
+ assert.equal(run(restored.context,'level'),7);assert.equal(run(restored.context,'money'),222);
+ assert.equal(run(restored.context,'traps[0].invested'),81);
+ // Exercise the path that formerly crashed during startup on a finished game.
+ assert.doesNotThrow(()=>restoreFixture({...valid,pie:0,over:true,lastResult:result}));
+}
+for(const result of [{kind:'passed',level:6},{kind:'passed',level:10,refund:81},{kind:'retry',level:7,loss:1,pie:6}]){
+ assert.deepEqual(JSON.parse(run(restoreFixture({...valid,lastResult:result}).context,'JSON.stringify(lastResult)')),result);
+}
+const dirty=restoreFixture({...valid,traps:[{...valid.traps[0],kick:{toString:0},aim:{toString:0},extra:'discard',invested:1e100}],over:{},seenKinds:['fox','fox',{}]});
+assert.equal(run(dirty.context,'over'),false);
+assert.equal(run(dirty.context,'traps[0].invested'),45);
+assert.equal(run(dirty.context,"'extra' in traps[0] || 'kick' in traps[0] || 'aim' in traps[0]"),false);
+assert.doesNotThrow(()=>run(dirty.context,'draw();ui()'));
+console.log('PASS: autosave and continue; wave checkpoint recovery; manual/menu/background pause; safe restart/cancel; legal placement; upgrade previews and new enemies in 3 languages; failed-turn persistence; corrupt and blocked storage; malformed save metadata recovery');
