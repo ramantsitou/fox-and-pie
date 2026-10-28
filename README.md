@@ -101,3 +101,7 @@ Run `npm run test:install-browser` with Playwright Chromium and Firefox installe
 Player setup uses a landscape two-column layout: the player list scrolls on the left, while language, Play and installation remain accessible on the right. Installation help can be opened before starting a game without losing entered names. The installation action is hidden in installed mode.
 
 During name entry, a compact keyboard layout keeps the active field visible and offers Next/Done without starting the game. Keyboard viewport changes retain the pre-keyboard orientation; actual orientation changes still update the layout. `npm run test:keyboard-browser` exercises simulated keyboard resizing in Chromium and Firefox, including four-player entry and layout-viewport resizing. Physical phone keyboard verification remains separate.
+
+The menu is a compact, subdued icon button with an accessible label. Boss health grows across countries (180, 260, 340, 420, 500). Retry assistance never reduces a later boss below 105% of the previous country’s full-strength boss health; the first boss retains its 65% floor.
+
+The final boss on level 50 summons seven hares, then five foxes, then three bears at 25%, 50% and 75% of the route. Allies appear just behind the boss with a magic effect and use normal level-50 animal stats. Each summon happens once per attempt; defeating the boss early prevents later summons, and victory requires clearing the surviving allies too.
