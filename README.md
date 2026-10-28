@@ -2,7 +2,7 @@
 
 Created by my son **Jan** and his friend **Martin** through **vibe coding**, turning their ideas into a playable game with AI assistance. Both were **7 years old** when they came up with the game.
 
-A browser game by Jan and Martin: place traps and protect the pie from foxes, wolves, bears, and hares. Features include Russian, English, and Dutch interfaces, alternating player turns, sound effects, trap upgrades, and a mobile layout.
+A browser game by Jan and Martin: place traps and protect the pie from foxes, wolves, bears, and hares. Features include Russian, English, and Dutch interfaces, custom names for 1–4 players taking turns, sound effects, trap upgrades, and a mobile layout.
 
 ![Five seconds of live gameplay captured in an Android emulator](docs/gameplay.gif)
 
@@ -56,6 +56,8 @@ A closed PWA is not guaranteed to update immediately: it checks when it next ope
 Foxes head for the pie, wolves tear through nets, bears can deflect arrows, and hares can jump over rock traps. Bows, arrow trees, nets, and rock traps each have distinct attacks. Animated footsteps, trap recoil, flying projectiles, torn nets, and ricocheting arrows show what happens during combat.
 
 ## Saved games and gameplay controls
+
+A new game starts with player setup: start with one player and add up to three friends. Each player has a distinct color and number. Names are optional (up to 24 characters); duplicate names are allowed. Players share the pie, coins and traps, and take turns in order after a completed level or a failed attempt. A solo player keeps the next turn. Names and the current player are saved with progress; changing the interface language does not change entered names. Existing saves without a roster retain their original two players. Starting over opens player setup again; progress resets only when Play is pressed. A solo game opens directly in preparation mode.
 
 The game saves the setup and results locally between waves. Reopening the page shows **Continue game** with the saved level, player, and pie. A reload or app closure during combat restores the setup from the start of that wave; the wave is replayed, rather than restoring animals in motion. Upgrades or purchases made during an unfinished wave are rolled back to that checkpoint. Saved games stay on the same device and browser origin.
 
