@@ -27,6 +27,9 @@ body.phone #playersDialog{height:min(94dvh,420px);padding:12px}body.phone #playe
 .name-edit-controls{display:none}#playerInputs{position:relative}body.phone #playersDialog[data-editing="true"]{position:fixed;inset:auto;left:var(--edit-left);top:var(--edit-top);width:var(--edit-width);height:var(--edit-height);max-height:none;max-width:none;margin:0;padding:8px;transform:translate(-50%,-50%)}body.manual-landscape #playersDialog[data-editing="true"]{transform:translate(-50%,-50%) rotate(90deg)}#playersDialog[data-editing="true"] #playersForm{display:flex;flex-direction:column;gap:6px}#playersDialog[data-editing="true"] .name-edit-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none}#nameEditStatus{font-size:14px}#nameEditNext{min-height:44px;padding:8px 16px}#playersDialog[data-editing="true"] .setup-roster{flex:1;min-height:0}#playersDialog[data-editing="true"] #playerInputs{flex:1;padding:3px}#playersDialog[data-editing="true"] .player-row{padding:6px;gap:4px}#playersDialog[data-editing="true"] .player-name{grid-column:1/-1}#playersDialog[data-editing="true"] :is(#playersTitle,.setup-intro,.setup-actions,#addPlayer,#allPlayers,#playersOptional,.remove-player){display:none!important}
 
 .action-bar,body.phone .action-bar{grid-template-columns:44px 44px;justify-content:space-between}#menuToggle,body.phone .action-bar #menuToggle{width:44px;height:44px;padding:0;font-size:24px;line-height:1;background:#244737;color:var(--ink);border-color:#83a17a;box-shadow:none}
+/* Keep long presses from selecting game labels; name fields retain native editing. */
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 </style><main>
 <header class="brand-header"><div><small data-i18n="credit"></small><h1 data-i18n="title"></h1></div></header>
 <div class="layout">
@@ -175,6 +178,7 @@ soundEnabled=true;soundButton();await unlockAudio(true);
 function firstAudioGesture(e){if(e.target===$('#sound'))return;if(soundEnabled&&(!audioContext||audioContext.state!=='running'))void unlockAudio();}
 document.addEventListener('pointerdown',firstAudioGesture,{capture:true});
 document.addEventListener('keydown',firstAudioGesture,{capture:true});
+document.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea,[contenteditable="true"],a[href]'))e.preventDefault();});
 Object.assign(translations,{
 menuLabel:{ru:'Меню',en:'Menu',nl:'Menu'},installHelp:{ru:'Установка и офлайн',en:'Installation and offline',nl:'Installatie en offline'},
 shortStart:{ru:'▶ Старт',en:'▶ Start',nl:'▶ Start'},shortBoss:{ru:'▶ Босс',en:'▶ Boss',nl:'▶ Baas'},
