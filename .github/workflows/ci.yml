@@ -6,11 +6,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      publish_preview:
-        description: Publish v2 at /v2/ while preserving the latest successful main artifact
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -66,68 +61,3 @@ jobs:
       - name: Deploy verified PWA
         id: deployment
         uses: actions/deploy-pages@v4
-
-  deploy_preview:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/v2' && inputs.publish_preview
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      actions: read
-      pages: write
-      id-token: write
-    concurrency:
-      group: github-pages
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.preview_deployment.outputs.page_url }}v2/
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Find the last successfully published main build
-        id: main_build
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const {data} = await github.rest.actions.listWorkflowRuns({
-              ...context.repo, workflow_id: 'ci.yml', branch: 'main', status: 'success', per_page: 1
-            });
-            const run = data.workflow_runs[0];
-            if (!run) throw new Error('No successful main build to preserve');
-            core.setOutput('run_id', String(run.id));
-      - name: Download unchanged main artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: github-pages
-          path: main-artifact
-          run-id: ${{ steps.main_build.outputs.run_id }}
-          github-token: ${{ github.token }}
-      - name: Download verified v2 artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: github-pages
-          path: preview-artifact
-      - name: Combine main with the isolated v2 preview
-        run: |
-          mkdir main-site preview-site
-          tar -xf main-artifact/artifact.tar -C main-site
-          tar -xf preview-artifact/artifact.tar -C preview-site
-          node scripts/prepare-preview.mjs main-site preview-site combined-site
-      - name: Upload combined Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          name: github-pages-preview
-          path: combined-site
-          retention-days: 7
-      - uses: actions/configure-pages@v5
-      - name: Publish preview alongside main
-        id: preview_deployment
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages-preview

@@ -4,7 +4,11 @@ Created by my son **Jan** and his friend **Martin** through **vibe coding**, tur
 
 A browser game by Jan and Martin: place traps and protect the pie from foxes, wolves, bears, and hares. Features include Russian, English, and Dutch interfaces, alternating player turns, sound effects, trap upgrades, and a mobile layout.
 
-Live site: https://ramantsitou.github.io/fox-and-pie/
+![Five seconds of live gameplay captured in an Android emulator](docs/gameplay.gif)
+
+Level 5 · Android emulator · normal speed
+
+Play: https://ramantsitou.github.io/fox-and-pie/
 
 ## Development
 
@@ -16,6 +20,8 @@ npm test
 npm run build
 ```
 
+- `docs/gameplay.gif` — a five-second recording of live gameplay in an Android emulator, used only by this README.
+- `assets/woodland-atlas.png` — the illustrated animals, traps, scenery, pie, and flag.
 - `index.html` — the application interface, styles, translations, and game logic.
 - `sw.js` — the PWA's offline cache.
 - `manifest.webmanifest` and `icons/` — app installation settings and icons.
@@ -27,7 +33,7 @@ npm run build
 - `tests/build.test.mjs` — build contents, cache version updates, and rejection of invalid source files.
 - `scripts/build.mjs` — validates the source and builds `dist/`. The cache version depends on the game's contents, so a changed build updates the PWA cache.
 
-For regular play, open the source HTML file directly. PWA features require HTTPS or localhost. After building, publish the contents of `dist/` while preserving the directory structure. See `INSTALL.txt` for installation details.
+For local play, serve `dist/` over localhost after building, or open the source HTML file directly. PWA features require HTTPS or localhost. Official publication is handled exclusively by the GitHub Actions pipeline. See `INSTALL.txt` for installation details.
 
 ## Language, fullscreen, and installed PWA updates
 
@@ -35,17 +41,21 @@ On first launch, the interface follows the browser’s preferred supported langu
 
 The installed PWA requests fullscreen landscape mode at launch. On phones in a regular browser, the first ready/start gesture requests immersive fullscreen; browser restrictions may prevent it. There is no fullscreen menu button.
 
-On phones, the board fits the largest possible 14:10 rectangle in the available area to the left of the shop, keeping cells square and artwork proportional. Mobile controls use short labels with complete accessible names, a single-line coin balance, and a two-column settings menu. Installation help is collapsed. The workshop and settings scroll independently, including touch scrolling after manual rotation. Gameplay notices use larger temporary messages; routine turn instructions stay in the handoff dialog. On desktop, the workshop scrolls within the available height. The canvas accounts for screen pixel density. Touch coordinates are calculated from its actual dimensions, including manual rotation.
+On phones, the board fits the largest possible 14:10 rectangle in the available area to the left of the shop, keeping cells square and artwork proportional. Mobile controls use short labels with complete accessible names, a single-line coin balance, and a two-column settings menu. Installation help is collapsed. The workshop and settings scroll independently, including touch scrolling after manual rotation. Gameplay messages and placement instructions appear in the workshop beside the board; the handoff dialog appears over the stopped field. On desktop, the workshop scrolls within the available height. On phones, the canvas accounts for screen pixel density. Touch coordinates are calculated from its actual dimensions, including manual rotation.
 
 The app checks for a new service worker when it opens, when the player returns to it, and once a minute while it is running. A new version activates only after the complete offline cache has downloaded successfully. The page waits until the current wave ends before restarting. Before the restart, it saves the level, player, pie, traps, coins, and speed settings in sessionStorage. The new page restores them. If the browser blocks sessionStorage, the game does not restart automatically, to avoid losing progress.
 
-This behavior starts working after the player first opens a version that includes it. A closed PWA is not guaranteed to update immediately: it checks when it next opens or the player returns to it. Internet access is needed to download a new version, not for regular offline play.
+A closed PWA is not guaranteed to update immediately: it checks when it next opens or the player returns to it. Internet access is needed to download a new version, not for regular offline play.
+
+## Animals and traps
+
+Foxes head for the pie, wolves tear through nets, bears can deflect arrows, and hares can jump over rock traps. Bows, arrow trees, nets, and rock traps each have distinct attacks. Animated footsteps, trap recoil, flying projectiles, torn nets, and ricocheting arrows show what happens during combat.
 
 ## Saved games and gameplay controls
 
 The game saves the setup and results locally between waves. Reopening the page shows **Continue game** with the saved level, player, and pie. A reload or app closure during combat restores the setup from the start of that wave; the wave is replayed, rather than restoring animals in motion. Upgrades or purchases made during an unfinished wave are rolled back to that checkpoint. Saved games stay on the same device and browser origin.
 
-The start control becomes a pause/resume control during combat. Opening settings or the new-game confirmation pauses the battle. After a background/blur event, the game waits for an explicit resume. Starting over requires confirmation; canceling preserves the current game and keeps combat paused until Resume is pressed. If local saving is blocked, play continues with a visible save warning.
+During combat, the Menu button opens the pause menu with an explicit Resume button. Opening the menu or the new-game confirmation pauses the battle. After a background/blur event, the game waits for an explicit resume. Starting over requires confirmation; canceling preserves the current game and keeps combat paused until Resume is pressed. If local saving is blocked, play continues with a visible save warning.
 
 Valid trap squares are highlighted after selecting a trap. Unaffordable cards remain selectable for guidance, but show the missing coins. Upgrade buttons preview the next damage (or net duration) and maximum durability. A player badge remains visible above the board. The wave preview lists animal counts, introduces new animal abilities, and becomes an entered/alive counter during combat. Handoff dialogs retain the previous result, including lost pie, refunds, and coin/trap rollback on a failed attempt.
 
@@ -53,7 +63,7 @@ Valid trap squares are highlighted after selecting a trap. Unaffordable cards re
 
 `.github/workflows/ci.yml` runs for pull requests targeting `main`, pushes to `main` (including merges), and manual runs.
 
-The sequence is: install from the lockfile → tests → build → upload the Pages artifact → deploy to GitHub Pages. Publication depends on successful verification. The main deployment runs only for `main`; the separate v2 preview deployment requires a manual run with `publish_preview` enabled. Pull requests never deploy. A failed test or build prevents publication. Only deployment jobs receive `pages: write` and `id-token: write`; pull requests have read-only repository access. No personal deployment token is required.
+The sequence is: install from the lockfile → tests → build → upload the Pages artifact → deploy to GitHub Pages. Publication depends on successful verification. Deployment runs only for `main`, including after a pull request is merged. Pull requests never deploy. A failed test or build prevents publication. Only deployment jobs receive `pages: write` and `id-token: write`; pull requests have read-only repository access. No personal deployment token is required.
 
 The site is published from the contents of `dist/` at:
 
@@ -75,9 +85,3 @@ npm run test:browser
 Playwright is an optional development tool, not an application dependency or part of the deployment pipeline. If it is installed elsewhere, set `PLAYWRIGHT_MODULE` to that package's absolute path. The script serves `dist/` on localhost port 4173 and writes screenshots and measured layouts to `artifacts/ux/` (ignored by Git).
 
 The checks cover Russian, English, and Dutch at 568×320, 740×360, 844×390, 915×412, manually rotated 390×844, and desktop 1280×800. They capture all five environments, exercise trap purchase/confirmation/cancel, upgrades, repairs, sales, pause/resume, restart confirmation, wave checkpoint recovery, and failed-turn handoff. Additional render fixtures show all animal types facing both directions, trap tiers, breakage, and net effects. An offline reload verifies the built service worker and illustration atlas. Fullscreen requests are disabled in these viewport checks to preserve the requested dimensions; native fullscreen behavior has separate unit coverage and still needs real-device testing.
-
-## v2 preview publication
-
-Manually run `ci.yml` on `v2` with `publish_preview` enabled to publish `/fox-and-pie/v2/`. The job combines the verified v2 build with the artifact from the latest successful main workflow. Main's files remain unchanged. Preview storage keys, offline cache names, and installed-app name are isolated from the main game. If main's artifact has expired, publication fails safely; first regenerate it through the main pipeline.
-
-The existing main workflow replaces the complete Pages site, so a later main deployment removes `/v2/`. Rerun the preview publication after deploying main to restore it. No preview is published by ordinary verification runs.
