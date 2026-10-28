@@ -87,3 +87,9 @@ npm run test:browser
 Playwright is an optional development tool, not an application dependency or part of the deployment pipeline. If it is installed elsewhere, set `PLAYWRIGHT_MODULE` to that package's absolute path. The script serves `dist/` on localhost port 4173 and writes screenshots and measured layouts to `artifacts/ux/` (ignored by Git).
 
 The checks cover Russian, English, and Dutch at 568×320, 740×360, 844×390, 915×412, manually rotated 390×844, and desktop 1280×800. They capture all five environments, exercise trap purchase/confirmation/cancel, upgrades, repairs, sales, pause/resume, restart confirmation, wave checkpoint recovery, and failed-turn handoff. Additional render fixtures show all animal types facing both directions, trap tiers, breakage, and net effects. An offline reload verifies the built service worker and illustration atlas. Fullscreen requests are disabled in these viewport checks to preserve the requested dimensions; native fullscreen behavior has separate unit coverage and still needs real-device testing.
+
+## v2 preview publication
+
+Manually run `ci.yml` on `v2` with `publish_preview` enabled to publish `/fox-and-pie/v2/`. The job combines the verified v2 build with the artifact from the latest successful main workflow. Main's files remain unchanged. Preview storage keys, offline cache names, and installed-app name are isolated from the main game. If main's artifact has expired, publication fails safely; first regenerate it through the main pipeline.
+
+The existing main workflow replaces the complete Pages site, so a later main deployment removes `/v2/`. Rerun the preview publication after deploying main to restore it. No preview is published by ordinary verification runs.
