@@ -10,7 +10,6 @@
   "scripts": {
     "test": "node tests/game.test.cjs && node tests/fullscreen.test.cjs && node tests/responsive-update.test.cjs && node tests/ux.test.cjs && node tests/sw.test.cjs && node tests/build.test.mjs && node tests/preview.test.mjs",
     "build": "node scripts/build.mjs",
-    "package:sites": "node scripts/package-sites.mjs",
     "test:browser": "node tests/browser.test.cjs"
   }
 }

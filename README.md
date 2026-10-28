@@ -14,7 +14,6 @@ Requires Node.js 22 or newer. There are no third-party dependencies.
 npm ci --ignore-scripts
 npm test
 npm run build
-npm run package:sites
 ```
 
 - `index.html` — the application interface, styles, translations, and game logic.
@@ -27,7 +26,6 @@ npm run package:sites
 - `tests/sw.test.cjs` — service worker installation, caching, offline startup, and scope boundaries.
 - `tests/build.test.mjs` — build contents, cache version updates, and rejection of invalid source files.
 - `scripts/build.mjs` — validates the source and builds `dist/`. The cache version depends on the game's contents, so a changed build updates the PWA cache.
-- `.openai/hosting.json` — the existing Sites project ID and the `dist` output directory. This is neither a secret nor a deployment credential.
 
 For regular play, open the source HTML file directly. PWA features require HTTPS or localhost. After building, publish the contents of `dist/` while preserving the directory structure. See `INSTALL.txt` for installation details.
 
@@ -55,23 +53,13 @@ Valid trap squares are highlighted after selecting a trap. Unaffordable cards re
 
 `.github/workflows/ci.yml` runs for pull requests targeting `main`, pushes to `main` (including merges), and manual runs.
 
-The sequence is: install from the lockfile → tests → build → upload the Pages artifact → deploy to GitHub Pages. The deployment job depends on successful verification and runs only for `main`, never for pull requests. A failed test or build prevents publication. Only the deployment job receives `pages: write` and `id-token: write`; pull requests have read-only repository access. No personal deployment token is required.
+The sequence is: install from the lockfile → tests → build → upload the Pages artifact → deploy to GitHub Pages. Publication depends on successful verification. The main deployment runs only for `main`; the separate v2 preview deployment requires a manual run with `publish_preview` enabled. Pull requests never deploy. A failed test or build prevents publication. Only deployment jobs receive `pages: write` and `id-token: write`; pull requests have read-only repository access. No personal deployment token is required.
 
 The site is published from the contents of `dist/` at:
 
 https://ramantsitou.github.io/fox-and-pie/
 
 The app's manifest, service worker, and icon paths are relative, so the `/fox-and-pie/` project-site path works for installation and offline play. The `github-pages` environment links to each deployment. In repository settings, Pages uses **GitHub Actions** as its publishing source.
-
-### Moving from the previous Sites address
-
-The previous site was hosted at https://fox-pie-yanchik-martin.freshflame33.chatgpt.site. It is not updated by this workflow. GitHub Pages is now the deployment target.
-
-If you installed the PWA from the old address, open the new GitHub Pages address and install it again once. The old installation cannot change its origin automatically. Future updates are downloaded from GitHub Pages; you do not need to reinstall for each release. Browser storage and existing game progress do not transfer between the two origins.
-
-### Optional legacy Sites packaging
-
-`scripts/package-sites.mjs`, the `npm run package:sites` command, and `.openai/hosting.json` remain available for legacy compatibility, but they are not part of the GitHub Pages deployment workflow. GitHub Actions does not publish to ChatGPT Sites.
 
 ## Optional browser regression checks
 

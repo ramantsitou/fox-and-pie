@@ -16,7 +16,6 @@ Files opened through file:// or content:// (from Downloads) cannot register a se
 
 Live game: https://ramantsitou.github.io/fox-and-pie/
 The same build can also be hosted on another static HTTPS service.
-If the PWA was installed from the previous ChatGPT Sites address, install it once from the new GitHub Pages address. Future updates will come from the new site. Storage and progress from the old origin do not transfer automatically.
 
 NEW RULES
 After a failed attempt, the level stays the same, but control passes to the other player. Lost pie is not restored.
