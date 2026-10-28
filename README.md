@@ -47,9 +47,9 @@ This behavior starts working after the player first opens a version that include
 
 The game saves the setup and results locally between waves. Reopening the page shows **Continue game** with the saved level, player, and pie. A reload or app closure during combat restores the setup from the start of that wave; the wave is replayed, rather than restoring animals in motion. Upgrades or purchases made during an unfinished wave are rolled back to that checkpoint. Saved games stay on the same device and browser origin.
 
-The start control becomes a pause/resume control during combat. Opening settings or the new-game confirmation pauses the battle. After a background/blur event, the game waits for an explicit resume. Starting over requires confirmation; canceling preserves the current game. If local saving is blocked, play continues with a visible save warning.
+The start control becomes a pause/resume control during combat. Opening settings or the new-game confirmation pauses the battle. After a background/blur event, the game waits for an explicit resume. Starting over requires confirmation; canceling preserves the current game and keeps combat paused until Resume is pressed. If local saving is blocked, play continues with a visible save warning.
 
-Valid trap squares are highlighted after selecting a trap. Unaffordable cards remain selectable for guidance, but show the missing coins. Upgrade buttons preview the next damage (or net duration) and maximum durability. A player badge remains visible on the board. The wave preview lists animal counts, introduces new animal abilities, and becomes an entered/alive counter during combat. Handoff dialogs retain the previous result, including lost pie, refunds, and coin/trap rollback on a failed attempt.
+Valid trap squares are highlighted after selecting a trap. Unaffordable cards remain selectable for guidance, but show the missing coins. Upgrade buttons preview the next damage (or net duration) and maximum durability. A player badge remains visible above the board. The wave preview lists animal counts, introduces new animal abilities, and becomes an entered/alive counter during combat. Handoff dialogs retain the previous result, including lost pie, refunds, and coin/trap rollback on a failed attempt.
 
 ## GitHub Actions and deployment
 
@@ -72,3 +72,18 @@ If you installed the PWA from the old address, open the new GitHub Pages address
 ### Optional legacy Sites packaging
 
 `scripts/package-sites.mjs`, the `npm run package:sites` command, and `.openai/hosting.json` remain available for legacy compatibility, but they are not part of the GitHub Pages deployment workflow. GitHub Actions does not publish to ChatGPT Sites.
+
+## Optional browser regression checks
+
+After building, run the Chromium checks with Playwright installed in the development environment:
+
+```sh
+npm install --no-save --package-lock=false playwright
+npx playwright install chromium
+npm run build
+npm run test:browser
+```
+
+Playwright is an optional development tool, not an application dependency or part of the deployment pipeline. If it is installed elsewhere, set `PLAYWRIGHT_MODULE` to that package's absolute path. The script serves `dist/` on localhost port 4173 and writes screenshots and measured layouts to `artifacts/ux/` (ignored by Git).
+
+The checks cover Russian, English, and Dutch at 568×320, 740×360, 844×390, 915×412, manually rotated 390×844, and desktop 1280×800. They capture all five environments, exercise trap purchase/confirmation/cancel, upgrades, repairs, sales, pause/resume, restart confirmation, wave checkpoint recovery, and failed-turn handoff. Additional render fixtures show all animal types facing both directions, trap tiers, breakage, and net effects. An offline reload verifies the built service worker and illustration atlas. Fullscreen requests are disabled in these viewport checks to preserve the requested dimensions; native fullscreen behavior has separate unit coverage and still needs real-device testing.

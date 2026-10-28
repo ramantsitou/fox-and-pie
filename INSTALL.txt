@@ -5,7 +5,7 @@ Open index.html in a browser. The game works without installation.
 On phones, tapping the ready/start button requests fullscreen automatically. Browsers may block fullscreen mode for local files. Install the PWA for fullscreen launch from its icon.
 
 INSTALL AS AN APP
-1. Host index.html, manifest.webmanifest, sw.js, and the icons directory together on a static HTTPS site. The files may be hosted in a subdirectory.
+1. Host index.html, manifest.webmanifest, sw.js, and the icons and assets directories together on a static HTTPS site. The files may be hosted in a subdirectory.
 2. Open the game's address in your phone's browser.
 3. Open the game menu → Install game. If the browser does not show an installation dialog, use its menu and select “Install app” or “Add to Home screen”.
 4. Wait for the message confirming that the game is ready to work offline.
