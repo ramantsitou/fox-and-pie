@@ -27,3 +27,25 @@ for(let n=0;n<200;n++){
 }
 for(let n=1;n<=50;n++){level=n;loadMaze();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if((pathIndices.get(x+','+y)??-1)!==path.findIndex(p=>p.x===x&&p.y===y))throw Error('Path index changed');}`);
 console.log('PASS: batched UI; pause/resume redraw invalidation; equivalent target selection and path indexes');
+
+// Rendering caches are shared across animals, preserve flash/jump variants and stay bounded.
+const {context:renderContext}=game({Image:class{constructor(){this.naturalWidth=1024;this.naturalHeight=1024;}}});
+const render=s=>vm.runInContext(s,renderContext);
+render('atlasReady=true;let imageCalls=0;ctx.drawImage=()=>{imageCalls++};drawWalkingArt(0,56,0,4)');
+assert.equal(render('imageCalls'),16*13+1,'a new sheet prepares the complete gait cycle once');
+render('imageCalls=0;drawWalkingArt(0,56,1.7,4)');
+assert.equal(render('imageCalls'),1,'a different gait phase reuses the same sheet with one draw');
+render('drawWalkingArt(0,56,0,4,true);drawWalkingArt(0,56,0,0)');
+assert.equal(render('walkingFrames.size'),3,'flash and jumping do not reuse an incompatible frame');
+render('walkingFrames.clear();for(let i=0;i<walkingCacheLimit+2;i++)drawWalkingArt(i%4,51+i,i*.17,4)');
+assert.equal(render('walkingFrames.size'),render('walkingCacheLimit'),'gait cache evicts old sheets when its memory limit is reached');
+assert.equal(render('arrowArt(2)===arrowArt(2)'),true,'trees share the same arrow sprite');
+assert.equal(render('arrowArt(1)===arrowArt(2)'),false,'upgrade colors remain distinct');
+console.log('PASS: shared gait/arrow sprites, flash/jump variants and bounded cache');
+render("ctx.shadowBlur=8;ctx.shadowColor='#ffd65e';drawTrapArt({type:1,tier:2,broken:false},55);imageCalls=0;drawTrapArt({type:1,tier:2,broken:false},55)");
+assert.equal(render('imageCalls'),1,'upgraded trees reuse their glowing image');
+render("drawTrapArt({type:1,tier:2,broken:true},55)");
+assert.equal(render('glowingTraps.size'),2,'broken trees retain a separate grayscale image');
+render('for(let i=0;i<100;i++){ctx.shadowBlur=i;drawTrapArt({type:1,tier:2},55)}');
+assert.equal(render('glowingTraps.size'),render('glowingTrapLimit'),'tree sprite cache is bounded');
+console.log('PASS: shared tree glow, separate broken appearance and bounded memory');
