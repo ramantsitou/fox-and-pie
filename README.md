@@ -2,7 +2,7 @@
 
 Created by my son **Jan** and his friend **Martin** through **vibe coding**, turning their ideas into a playable game with AI assistance. Both were **7 years old** when they came up with the game.
 
-A browser game by Jan and Martin: place traps and protect the pie from foxes, wolves, bears, and hares. Features include Russian, English, and Dutch interfaces, alternating player turns, sound effects, trap upgrades, and a mobile layout.
+A browser game by Jan and Martin: place traps and protect the pie from foxes, wolves, bears, and hares. Features include Russian, English, and Dutch interfaces, custom names for 1–4 players taking turns, sound effects, trap upgrades, and a mobile layout.
 
 ![Five seconds of live gameplay captured in an Android emulator](docs/gameplay.gif)
 
@@ -43,9 +43,9 @@ For local play, serve `dist/` over localhost after building, or open the source 
 
 On first launch, the interface follows the browser’s preferred supported language (Russian, English, or Dutch), including regional variants. If none matches, it uses English. A language chosen in the menu is saved and takes priority on later visits.
 
-The installed PWA requests fullscreen landscape mode at launch. On phones in a regular browser, the first ready/start gesture requests immersive fullscreen; browser restrictions may prevent it. There is no fullscreen menu button.
+The installed PWA requests fullscreen landscape mode at launch. On phones in a regular browser, the first ready/start gesture requests immersive fullscreen; browser restrictions may prevent it. There is no fullscreen menu button. In an upright phone viewport, the game immediately rotates its layout sideways without a rotate-phone prompt. Turning the phone updates the layout automatically without resetting the game.
 
-On phones, the board fits the largest possible 14:10 rectangle in the available area to the left of the shop, keeping cells square and artwork proportional. Mobile controls use short labels with complete accessible names, a single-line coin balance, and a two-column settings menu. Installation help is collapsed. The workshop and settings scroll independently, including touch scrolling after manual rotation. Gameplay messages and placement instructions appear in the workshop beside the board; the handoff dialog appears over the stopped field. On desktop, the workshop scrolls within the available height. On phones, the canvas accounts for screen pixel density. Touch coordinates are calculated from its actual dimensions, including manual rotation.
+On phones, the board fits the largest possible 14:10 rectangle in the available area to the left of the shop, keeping cells square and artwork proportional. Mobile controls use short labels with complete accessible names, a single-line coin balance, and a two-column settings menu. Installation help is collapsed. The workshop and settings scroll independently, including touch scrolling after automatic rotation. Gameplay messages and placement instructions appear in the workshop beside the board; the handoff dialog appears over the stopped field. On desktop, the workshop scrolls within the available height. On phones, the canvas accounts for screen pixel density. Touch coordinates are calculated from its actual dimensions, including automatic rotation.
 
 The app checks for a new service worker when it opens, when the player returns to it, and once a minute while it is running. A new version activates only after the complete offline cache has downloaded successfully. The page waits until the current wave ends before restarting. Before the restart, it saves the level, player, pie, traps, coins, and speed settings in sessionStorage. The new page restores them. If the browser blocks sessionStorage, the game does not restart automatically, to avoid losing progress.
 
@@ -56,6 +56,8 @@ A closed PWA is not guaranteed to update immediately: it checks when it next ope
 Foxes head for the pie, wolves tear through nets, bears can deflect arrows, and hares can jump over rock traps. Bows, arrow trees, nets, and rock traps each have distinct attacks. Animated footsteps, trap recoil, flying projectiles, torn nets, and ricocheting arrows show what happens during combat.
 
 ## Saved games and gameplay controls
+
+A new game starts with player setup: start with one player and add up to three friends. Each player has a distinct color. Entered names appear on their own; unnamed players are called Player 1, Player 2, and so on. Names are optional (up to 24 characters); duplicate names are allowed. Players share the pie, coins and traps, and take turns in order after a completed level or a failed attempt. A solo player keeps the next turn. Names and the current player are saved with progress; changing the interface language does not change entered names. Existing saves without a roster retain their original two players. Starting over opens player setup again; progress resets only when Play is pressed. A solo game opens directly in preparation mode.
 
 The game saves the setup and results locally between waves. Reopening the page shows **Continue game** with the saved level, player, and pie. A reload or app closure during combat restores the setup from the start of that wave; the wave is replayed, rather than restoring animals in motion. Upgrades or purchases made during an unfinished wave are rolled back to that checkpoint. Saved games stay on the same device and browser origin.
 
@@ -88,4 +90,18 @@ npm run test:browser
 
 Playwright is an optional development tool, not an application dependency or part of the deployment pipeline. If it is installed elsewhere, set `PLAYWRIGHT_MODULE` to that package's absolute path. The script serves `dist/` on localhost port 4173 and writes screenshots and measured layouts to `artifacts/ux/` (ignored by Git).
 
-The checks cover Russian, English, and Dutch at 568×320, 740×360, 844×390, 915×412, manually rotated 390×844, and desktop 1280×800. They capture all five environments, exercise trap purchase/confirmation/cancel, upgrades, repairs, sales, pause/resume, restart confirmation, wave checkpoint recovery, and failed-turn handoff. Additional render fixtures show all animal types facing both directions, trap tiers, breakage, and net effects. An offline reload verifies the built service worker and illustration atlas. Fullscreen requests are disabled in these viewport checks to preserve the requested dimensions; native fullscreen behavior has separate unit coverage and still needs real-device testing.
+The checks cover Russian, English, and Dutch at 568×320, 740×360, 844×390, 915×412, automatically rotated 390×844, and desktop 1280×800. They capture all five environments, exercise trap purchase/confirmation/cancel, upgrades, repairs, sales, pause/resume, restart confirmation, wave checkpoint recovery, and failed-turn handoff. Additional render fixtures show all animal types facing both directions, trap tiers, breakage, and net effects. An offline reload verifies the built service worker and illustration atlas. Fullscreen requests are disabled in these viewport checks to preserve the requested dimensions; native fullscreen behavior has separate unit coverage and still needs real-device testing.
+
+After completing all 50 levels, a thank-you screen introduces the game’s creators, Jan and Martin, with an illustration of two friends and a link to the GitHub repository. Play again opens player setup before resetting progress. On landscape phones, including automatic rotation, the illustration sits beside the text and both buttons fit without scrolling. Both illustration variants are included in the offline cache.
+
+The install button opens the browser’s native installation prompt when available. Otherwise it opens visible, localized instructions for Android Firefox, iPhone/iPad, other Android browsers, or a generic browser. Cancellation and errors receive visible feedback. Firefox installation uses its browser menu; native installation cannot be forced by the website.
+
+Run `npm run test:install-browser` with Playwright Chromium and Firefox installed to verify installation instructions, mobile layouts, and failure feedback in both engines. Platform identities are simulated; native installation still requires testing on the target phone.
+
+Player setup uses a landscape two-column layout: the player list scrolls on the left, while language, Play and installation remain accessible on the right. Installation help can be opened before starting a game without losing entered names. The installation action is hidden in installed mode.
+
+During name entry, a compact keyboard layout keeps the active field visible and offers Next/Done without starting the game. Keyboard viewport changes retain the pre-keyboard orientation; actual orientation changes still update the layout. `npm run test:keyboard-browser` exercises simulated keyboard resizing in Chromium and Firefox, including four-player entry and layout-viewport resizing. Physical phone keyboard verification remains separate.
+
+The menu is a compact, subdued icon button with an accessible label. Boss health grows across countries (180, 260, 340, 420, 500). Retry assistance never reduces a later boss below 105% of the previous country’s full-strength boss health; the first boss retains its 65% floor.
+
+The final boss on level 50 summons seven hares, then five foxes, then three bears at 25%, 50% and 75% of the route. Allies appear just behind the boss with a magic effect and use normal level-50 animal stats. Each summon happens once per attempt; defeating the boss early prevents later summons, and victory requires clearing the surviving allies too.
