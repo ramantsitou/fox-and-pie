@@ -105,3 +105,11 @@ During name entry, a compact keyboard layout keeps the active field visible and 
 The menu is a compact, subdued icon button with an accessible label. Boss health grows across countries (162, 260, 340, 420, 525). Retry assistance never reduces a later boss below 105% of the previous country’s full-strength boss health; the first boss retains its 65% floor.
 
 The final boss on level 50 summons seven hares, then five foxes, then seven wolves, then three bears at 20%, 40%, 60% and 80% of the route. Allies appear just behind the boss with a magic effect and use normal level-50 animal stats. Each summon happens once per attempt; defeating the boss early prevents later summons, and victory requires clearing the surviving allies too.
+
+### Halloween bonus
+
+From October 24 through November 14 (inclusive, device local date), the level-50 victory screen offers bonus level 51. It keeps the castle maze, traps, coins and level-50 combat balance. Pumpkins replace foxes, bats replace hares, skeletons replace wolves, mummies replace bears, and a large vampire replaces the boss. The same four reinforcements are summoned. An original synthesized minor-key music loop follows the sound setting and pauses with battle menus/backgrounding. No external audio downloads are needed. A saved bonus game reopened outside the seasonal window returns to the completed main campaign.
+
+Players with an existing saved level-50 victory can enter directly from the restored victory screen during the event; replaying the campaign is unnecessary. Their pie, coins and traps are preserved. This requires the completed campaign still to be saved in that browser.
+
+Run `npm run test:halloween-browser` to check completed-save migration, seasonal entry, battle rendering on desktop and phone sizes, offline bonus loading, and music pause/mute.
